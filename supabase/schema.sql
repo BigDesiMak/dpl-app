@@ -735,3 +735,53 @@ COMMENT ON TABLE players IS 'All DPL cricket players available for fantasy selec
 COMMENT ON TABLE fantasy_teams IS 'User fantasy teams per phase';
 COMMENT ON TABLE player_match_stats IS 'Match statistics entered by admin after each match';
 COMMENT ON TABLE fantasy_match_points IS 'Auto-calculated fantasy points per team per match';
+
+
+-- Remove old broken trigger
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS handle_new_user();
+
+-- Recreate with proper error handling
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  base_username TEXT;
+  final_username TEXT;
+  counter INT := 0;
+BEGIN
+  base_username := COALESCE(
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'username'), ''),
+    SPLIT_PART(NEW.email, '@', 1)
+  );
+  base_username := LOWER(REGEXP_REPLACE(base_username, '[^a-zA-Z0-9_]', '', 'g'));
+  base_username := LEFT(base_username, 20);
+  IF LENGTH(base_username) < 3 THEN base_username := 'user'; END IF;
+
+  final_username := base_username;
+  -- Auto-append number if username already taken
+  WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
+    counter := counter + 1;
+    final_username := LEFT(base_username, 17) || counter::TEXT;
+  END LOOP;
+
+  INSERT INTO public.profiles (id, username, full_name, flat_number)
+  VALUES (
+    NEW.id, final_username,
+    COALESCE(NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''), ''),
+    COALESCE(NEW.raw_user_meta_data->>'flat_number', '')
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    username = CASE WHEN profiles.username = '' THEN EXCLUDED.username ELSE profiles.username END,
+    full_name = CASE WHEN profiles.full_name = '' THEN EXCLUDED.full_name ELSE profiles.full_name END,
+    flat_number = CASE WHEN profiles.flat_number IS NULL THEN EXCLUDED.flat_number ELSE profiles.flat_number END;
+
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RAISE WARNING 'handle_new_user failed: %', SQLERRM;
+  RETURN NEW;  -- Never block signup even if profile insert fails
+END;
+$$;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
