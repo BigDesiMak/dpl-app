@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import AuthCallback from './pages/AuthCallback'
 import UserDashboard from './pages/UserDashboard'
 import TeamSelection from './pages/TeamSelection'
 import Leaderboard from './pages/Leaderboard'
@@ -30,16 +31,24 @@ function ProtectedRoute({ children, adminOnly = false }) {
 }
 
 function AppRoutes() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={!user ? <Landing /> : <Navigate to="/dashboard" replace />} />
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
       <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+
+      {/* Auth callback — MUST be public, handles email verification redirect */}
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Protected user routes */}
       <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><TeamSelection /></ProtectedRoute>} />
       <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
       <Route path="/players" element={<ProtectedRoute><PlayerStats /></ProtectedRoute>} />
+
+      {/* Protected admin routes */}
       <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/players" element={<ProtectedRoute adminOnly><AdminPlayers /></ProtectedRoute>} />
       <Route path="/admin/matches" element={<ProtectedRoute adminOnly><AdminMatches /></ProtectedRoute>} />
@@ -47,6 +56,7 @@ function AppRoutes() {
       <Route path="/admin/teams" element={<ProtectedRoute adminOnly><AdminTeams /></ProtectedRoute>} />
       <Route path="/admin/scoring" element={<ProtectedRoute adminOnly><AdminScoring /></ProtectedRoute>} />
       <Route path="/admin/phases" element={<ProtectedRoute adminOnly><AdminPhases /></ProtectedRoute>} />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
