@@ -99,13 +99,18 @@ export default function AdminMatches() {
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   {!m.is_completed && <button className="btn btn-secondary btn-sm" onClick={() => markComplete(m)}>✓ Mark Complete</button>}
-                  {m.is_completed && !m.stats_entered && (
-                    <Link to={`/admin/match-stats/${m.id}`} className="btn btn-primary btn-sm">📊 Enter Stats</Link>
-                  )}
-                  {m.stats_entered && <span className="badge badge-green">✓ Stats Entered</span>}
-                  {!m.is_completed && <span className="badge badge-gray">Upcoming</span>}
                   {m.is_completed && !m.stats_entered && <span className="badge badge-gold">Awaiting Stats</span>}
-                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(m)}>Edit</button>
+                  {m.stats_entered && <span className="badge badge-green">✓ Stats Done</span>}
+                  {!m.is_completed && <span className="badge badge-gray">Upcoming</span>}
+                  {m.is_completed && (
+                    <Link
+                      to={`/admin/match-stats/${m.id}`}
+                      className={`btn btn-sm ${m.stats_entered ? 'btn-secondary' : 'btn-primary'}`}
+                    >
+                      {m.stats_entered ? '✏️ Edit Stats' : '📊 Enter Stats'}
+                    </Link>
+                  )}
+                  <button className="btn btn-ghost btn-sm" onClick={() => openEdit(m)}>Edit Match</button>
                 </div>
               </div>
             </div>

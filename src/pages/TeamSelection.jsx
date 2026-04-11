@@ -28,6 +28,7 @@ export default function TeamSelection() {
   const [filterSkill, setFilterSkill] = useState('All')
   const [filterTeam, setFilterTeam] = useState('All')
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('name')
   const [transfers, setTransfers] = useState([])
 
   useEffect(() => { loadData() }, [user])
@@ -80,14 +81,25 @@ export default function TeamSelection() {
   }, [selectedPlayers])
 
   const filteredPlayers = useMemo(() => {
-    return allPlayers.filter(p => {
+    const filtered = allPlayers.filter(p => {
       if (filterGender !== 'All' && p.gender !== filterGender) return false
       if (filterSkill !== 'All' && p.skill !== filterSkill) return false
       if (filterTeam !== 'All' && p.dpl_team_id?.toString() !== filterTeam) return false
       if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.flat_number?.toLowerCase().includes(search.toLowerCase())) return false
       return true
     })
-  }, [allPlayers, filterGender, filterSkill, filterTeam, search])
+    return filtered.sort((a, b) => {
+      if (sortBy === 'name_asc')   return a.name.localeCompare(b.name)
+      if (sortBy === 'name_desc')  return b.name.localeCompare(a.name)
+      if (sortBy === 'price_high') return (b.auction_price || 0) - (a.auction_price || 0)
+      if (sortBy === 'price_low')  return (a.auction_price || 0) - (b.auction_price || 0)
+      // default: selected first, then alphabetical
+      const aSelected = selectedIds.includes(a.id) ? 0 : 1
+      const bSelected = selectedIds.includes(b.id) ? 0 : 1
+      if (aSelected !== bSelected) return aSelected - bSelected
+      return a.name.localeCompare(b.name)
+    })
+  }, [allPlayers, filterGender, filterSkill, filterTeam, search, sortBy, selectedIds])
 
   function canSelect(player) {
     if (selectedIds.includes(player.id)) return true
@@ -275,6 +287,27 @@ export default function TeamSelection() {
                 <option value="All">All DPL Teams</option>
                 {dplTeams.map(t => <option key={t.id} value={t.id.toString()}>{t.name}</option>)}
               </select>
+              <select className="form-select" value={sortBy} onChange={e=>setSortBy(e.target.value)}
+                style={{ borderColor: sortBy !== 'name_asc' ? 'var(--gold-400)' : undefined }}>
+                <option value="name_asc">⬆ Name (A→Z)</option>
+                <option value="name_desc">⬇ Name (Z→A)</option>
+                <option value="price_high">💰 Price (High→Low)</option>
+                <option value="price_low">💰 Price (Low→High)</option>
+              </select>
+            </div>
+            {/* Sort/filter summary */}
+            <div style={{ fontSize: '0.78rem', color: 'var(--gray-400)', marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <span>{filteredPlayers.length} player{filteredPlayers.length !== 1 ? 's' : ''} shown</span>
+              {filterGender !== 'All' && <span>· Gender: <strong style={{color:'var(--cream)'}}>{filterGender}</strong></span>}
+              {filterSkill !== 'All' && <span>· Skill: <strong style={{color:'var(--cream)'}}>{filterSkill}</strong></span>}
+              {filterTeam !== 'All' && <span>· Team filtered</span>}
+              {search && <span>· Search: <strong style={{color:'var(--cream)'}}>{search}</strong></span>}
+              {(filterGender !== 'All' || filterSkill !== 'All' || filterTeam !== 'All' || search) &&
+                <button className="btn btn-ghost btn-sm" style={{padding:'0 4px', fontSize:'0.75rem'}}
+                  onClick={() => { setFilterGender('All'); setFilterSkill('All'); setFilterTeam('All'); setSearch('') }}>
+                  ✕ Clear filters
+                </button>
+              }
             </div>
             <div className="player-grid">
               {filteredPlayers.map(player => {

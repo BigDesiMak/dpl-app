@@ -386,89 +386,133 @@ ON CONFLICT (key) DO NOTHING;
 
 -- Players (extracted from DFL Premier League file)
 -- NOTE: Admin can add/edit players from the admin panel
-INSERT INTO players (name, gender, flat_number, skill, dpl_team_id, auction_price) VALUES
-  ('Anshul Khedkar', 'Male', 'RH 16A', 'Bowling All Rounder', 8, 1200),
-  ('Ayam Sahoo', 'Male', 'A2-703', 'Batting All Rounder', 1, 1500),
-  ('Vedant Shimpi', 'Male', 'B2 203', 'Batter', 2, 1000),
-  ('Raunak', 'Male', 'RH-8', 'Bowling All Rounder', 8, 1100),
-  ('Mahendra Deore', 'Male', 'A4-302', 'Batting All Rounder', 1, 1300),
-  ('Saksham Shelar', 'Male', 'G2 201', 'Batter', 7, 1000),
-  ('Rajveer Vinod Nanek', 'Male', 'RH 28', 'Bowling All Rounder', 8, 1200),
-  ('Prathmesh Bajaj', 'Male', 'A2-205', 'Batting All Rounder', 1, 1400),
-  ('Sachin Soni', 'Male', 'A3-302', 'Batter', 1, 1100),
-  ('Devendra Bhadane', 'Male', 'E1 602', 'Bowler', 5, 1000),
-  ('Darshan Sharma', 'Male', 'MR', 'Bowling All Rounder', 8, 1150),
-  ('Dhruva Nikam', 'Male', 'B2-24', 'Batter', 2, 1000),
-  ('Raju Shelar', 'Male', 'G2 201', 'Bowler', 7, 950),
-  ('Saurabh Bansal', 'Male', 'D1-702', 'Batting All Rounder', 4, 1300),
-  ('Prakhar Mathur', 'Male', 'RH-18', 'Batter', 8, 1100),
-  ('Saumya Toke', 'Male', 'B2 703', 'Bowling All Rounder', 2, 1200),
-  ('Ashish Takke', 'Male', 'A4-101', 'Batter', 1, 1000),
-  ('Anil Malhotra', 'Male', 'A4-100', 'Batting All Rounder', 1, 1250),
-  ('Joginder Saini', 'Male', 'F 10A', 'Bowler', 6, 1000),
-  ('Rohit Virani', 'Male', 'G1-704', 'Batting All Rounder', 7, 1350),
-  ('Sudhanshu Shrivastav', 'Male', 'E3-501', 'Batter', 5, 1100),
-  ('Shreyan Das', 'Male', 'E1-402', 'Bowling All Rounder', 5, 1200),
-  ('Ritesh Jagtap', 'Male', 'RH 28A', 'Bowler', 8, 1000),
-  ('Vittej Kulkarni', 'Male', 'G1-505', 'Batter', 7, 1050),
-  ('Ankit Kumar', 'Male', 'A1-16A', 'Batting All Rounder', 1, 1200),
-  ('Sanjay Banerjee', 'Male', 'A2-403', 'Batter', 1, 1000),
-  ('Pankaj Satpute', 'Male', 'A4-205', 'Bowler', 1, 950),
-  ('Aniket Antony', 'Male', 'D1-A', 'Bowling All Rounder', 4, 1150),
-  ('Vijay Badlani', 'Male', 'E3-A', 'Batter', 5, 1100),
-  ('Arnavy Singh', 'Male', 'RH-09', 'Batting All Rounder', 8, 1300),
-  ('Dharmendra Kalsaria', 'Male', 'A4-306', 'Bowler', 1, 1000),
-  ('Amjad Deshmukh', 'Male', 'E1-701', 'Batting All Rounder', 5, 1200),
-  ('Gagan Dake', 'Male', 'E3-301', 'Batter', 5, 1050),
-  ('Kirtish Chavan', 'Male', 'A3-202', 'Bowling All Rounder', 1, 1200),
-  ('Hiten Badlani', 'Male', 'A3-F', 'Batter', 1, 1100),
-  ('Yajat Chopada', 'Male', 'A2-301', 'Bowling All Rounder', 1, 1150),
-  ('Chetan Kumar', 'Male', 'B2-101', 'Bowler', 2, 950),
-  ('Ravi Khodke', 'Male', 'RH-17', 'Batting All Rounder', 8, 1250),
-  ('Makarand Dixit', 'Male', 'A3-501', 'Batter', 1, 1100),
-  ('Vrushal Patil', 'Male', 'A4-601', 'Bowling All Rounder', 1, 1200),
-  ('Rahul Bagade', 'Male', 'A2-402', 'Batter', 1, 1000),
-  ('Atharva Chandlekar', 'Male', 'A3-301', 'Bowling All Rounder', 1, 1150),
-  ('Suyog Patil', 'Male', 'A3-705', 'Batter', 1, 1000),
-  ('Amit Jaiswal', 'Male', 'E2-504', 'Bowling All Rounder', 5, 1200),
-  ('Mihir Gambhire', 'Male', 'A2-405', 'Batter', 1, 1050),
-  ('Abhineet Singh', 'Male', 'A3-604', 'Bowling All Rounder', 1, 1200),
-  ('Avinash Pillai', 'Male', 'D1-A', 'Batter', 4, 1050),
-  ('Advait Prabhu', 'Male', 'A2-701', 'Batting All Rounder', 1, 1250),
-  ('Alok Kumar', 'Male', 'E1-201', 'Batter', 5, 1000),
-  ('Nitin Jayswal', 'Male', 'F-201', 'Bowling All Rounder', 6, 1150),
-  ('Chinmay Das', 'Male', 'A4-501', 'Batter', 1, 1000),
-  ('Suvajit Sinha', 'Male', 'E3-202', 'Bowling All Rounder', 5, 1200),
-  ('Aavirbhav Singh', 'Male', 'G2-101', 'Batter', 7, 1050),
-  ('Yatharth Badgujar', 'Male', 'A3-401', 'Bowling All Rounder', 1, 1150),
-  -- Female Players
-  ('Shweta Vishwakarma', 'Female', 'A4-202', 'Batting All Rounder', 1, 1200),
-  ('Deepa Sharma', 'Female', 'A4-A', 'Batter', 1, 1100),
-  ('Priyanka Sharma', 'Female', 'B2-301', 'Bowling All Rounder', 2, 1200),
-  ('Neelam Burgha', 'Female', 'E1-501', 'Batter', 5, 1100),
-  ('Divya Baronia', 'Female', 'A2-201', 'Batting All Rounder', 1, 1200),
-  ('Sonal Patil', 'Female', 'B2-203', 'Batter', 2, 1100),
-  ('Asmi Joshi', 'Female', 'A4-A', 'Bowling All Rounder', 1, 1150),
-  ('Gauri Patil', 'Female', 'RH-4B', 'Batter', 8, 1100),
-  ('Prerana Kumar', 'Female', 'E2-402', 'Batting All Rounder', 5, 1200),
-  ('Jagruti Lalka', 'Female', 'A3-404', 'Batter', 1, 1100),
-  ('Keya Agrawal', 'Female', 'A3-501', 'Bowling All Rounder', 1, 1150),
-  ('Vritti Gupta', 'Female', 'A2-601', 'Batter', 1, 1100),
-  ('Nirupama Singh', 'Female', 'D1-503', 'Batting All Rounder', 4, 1200),
-  ('Shilpa Wagle', 'Female', 'A3-301', 'Batter', 1, 1100),
-  ('Nalini Sharma', 'Female', 'B2-401', 'Bowling All Rounder', 2, 1150),
-  ('Snehal Patil', 'Female', 'G1-201', 'Batter', 7, 1100),
-  ('Ritu Saxena', 'Female', 'A3-501', 'Batting All Rounder', 1, 1200),
-  ('Purva Harkal', 'Female', 'A4-301', 'Batter', 1, 1100),
-  ('Manisha Bundela', 'Female', 'E3-101', 'Bowling All Rounder', 5, 1150),
-  ('Anushka Sharma', 'Female', 'RH-17', 'Batter', 8, 1100),
-  ('Alka Sharma', 'Female', 'A3-201', 'Batting All Rounder', 1, 1150),
-  ('Sujata Patil', 'Female', 'A4-501', 'Batter', 1, 1100),
-  ('Itika Gupta', 'Female', 'D1-301', 'Bowling All Rounder', 4, 1150),
-  ('Manasee Joshi', 'Female', 'RH-27', 'Batter', 8, 1100),
-  ('Mehak Sharma', 'Female', 'A2-301', 'Batting All Rounder', 1, 1200),
-  ('Rajul Gupta', 'Female', 'A3-101', 'Batter', 1, 1100),
-  ('Dipa Thorat', 'Female', 'G2-301', 'Bowling All Rounder', 7, 115)
+insert into players (name, gender, flat_number, skill, dpl_team_id, auction_price) VALUES
+('Anshul Khedkar','Male','RH 16A','Bowling All Rounder',1,4950),
+('Ayam Sahoo','Male','A2-703','Batting All Rounder',2,4300),
+('Vedant Shimpi','Male','B2 203','Batting All Rounder',3,4150),
+('Raunak','Male','RH-8','Bowling All Rounder',4,3950),
+('Mahendra Deore','Male','A4-302','Batting All Rounder',5,3150),
+('Saksham shelar','Male','G2 201','Batting All Rounder',7,3150),
+('Rajveer Vinod Nanekar','Male','Rh no 28','Batting All Rounder',8,2850),
+('Prathmesh Bajaj','Male','A4-205','Batter',9,2750),
+('Sachin Soni','Male','RH8','Batting All Rounder',10,2700),
+('Devendra Bhadane','Male','E1 602','Batting All Rounder',5,2350),
+('Darshan Sharma','Male','A4-603','Batting All Rounder',4,2000),
+('Dhruva Nikam','Male','24 B RH','Batting All Rounder',11,2000),
+('Raju shelar','Male','G2 201 ','Batting All Rounder',3,2000),
+('Saurabh Bansal','Male','D1-702','Batting All Rounder',11,2000),
+('Prakhar Mathur','Male','Rh18','Bowling All Rounder',1,2000),
+('Saumya Toke','Male','B2 703','Batting All Rounder',9,2000),
+('Ashish Sontakke','Male','A1-603','Batting All Rounder',12,2000),
+('Anil malhotra','Male','A4-102','Batting All Rounder',7,1950),
+('Joginder Saini','Male','F 101','Batting All Rounder',8,1900),
+('Rohit Virani','Male','A4 704','Bowling All Rounder',6,1900),
+('Sudhanshu Shrivastav','Male','E3-501','Batting All Rounder',10,1750),
+('shreyan das','Male','E1-402','Batting All Rounder',6,1700),
+('Ritesh Jagtap','Male','RH 28 A','Batter',8,1650),
+('Vittej','Male','G1 502','Batting All Rounder',12,1600),
+('Ankit Khedkar','Male','16A RH','Batting All Rounder',6,1600),
+('Sanjay Banerjee','Male','A2 -702','Bowling All Rounder',6,1550),
+('Pankaj Bajaj','Male','A4205','Batting All Rounder',9,1500),
+('Saurabh Satpute','Male','A4 202','Bowling All Rounder',10,1500),
+('Shweta Vijay Suryawanshi','Female','RH 9','Batting All Rounder',7,1500),
+('Aniket Antony','Male','D1-201','Batting All Rounder',2,1500),
+('Deep Sharma','Male','A4 603','Batting All Rounder',4,1300),
+('Datta Shinde','Male','Flat : 502','Batting All Rounder',12,1300),
+('VIJAY BADLANI','Male','A/3/702','Batting All Rounder',11,1300),
+('Arnav shelar','Male','G2 201','Bowling All Rounder',1,1050),
+('Sharvil','Male','Rh.09','Bowling All Rounder',3,1050),
+('Dharmesh Kalsaria','Male','A4-306','Batting All Rounder',10,1000),
+('Prasad Deshmukh','Male','E1701','Batting All Rounder',5,1000),
+('Niranjan Dake','Male','E3-301','Bowling All Rounder',5,1000),
+('Neellohit Burghate','Male','B1-203','Batter',9,1000),
+('Vidya Thakare','Female','B2 302','Bowling All Rounder',9,950),
+('Kirtish Chaudhari','Male','G2-301','Batting All Rounder',2,950),
+('Hiten Badlani','Male','A/3 Flat No 702','Bowling All Rounder',2,950),
+('Yajat Chopade','Male','B1-704','Batting All Rounder',11,900),
+('Divya Baronia','Female','A2-303','Bowling All Rounder',5,900),
+('Sonal Burghate','Female','203- B1','Bowling All Rounder',11,900),
+('Aarya Thakare','Female','B2 302','Batting All Rounder',11,850),
+('Asmi Sontakke','Female','A1-603','Batting All Rounder',12,850),
+('Palakshi Bajaj','Female','A4/205','Batter',8,850),
+('Gauri Patil','Female','Row House 4 B','Batter',6,850),
+('Prerana Chavan','Female','E2-401','Bowling All Rounder',9,800),
+('Sunil Kumar','Male','B1-604','Batting All Rounder',2,800),
+('Chetan Mankar','Male','A4 606','Bowler',1,800),
+('Rajesh Kharabe','Male','B2 304','Bowling All Rounder',7,750),
+('Ashish Naghate','Male','B1 401','Bowling All Rounder',6,750),
+('Jitendravansheekumar Shelar','Male','E2-401','Batting All Rounder',10,700),
+('Yojana','Female','A4-302','Batting All Rounder',7,700),
+('Ravi Khodke','Male','RH#17','Batting All Rounder',3,650),
+('Makarand Patil','Male','A1-104','Batting All Rounder',12,650),
+('Gaurav','Male','B2-301','Batting All Rounder',2,650),
+('Rajveer Patil','Male','A2 204','Bowling All Rounder',11,600),
+('Vrushali Sonawane','Female','A4/601','Bowling All Rounder',4,600),
+('Jagruti Lalka','Female','A 3 404','Bowler',12,600),
+('Jagrati Thakur','Female','D2-602','Bowler',3,600),
+('Rahul Bagade','Male','G1 201','Batter',5,550),
+('Atharv Sonawane','Male','A4/601','Bowling All Rounder',8,550),
+('Ashish Chandlekar','Male','A3-201','Bowler',8,550),
+('Suyog','Male','A3 705','Batting All Rounder',8,500),
+('Keya Satpute','Female','A4-202','Batting All Rounder',10,500),
+('Mohit Agrawal','Male','A2-106','Batting All Rounder',6,500),
+('Vritti','Female','A3 404','Batter',8,500),
+('Romita Somaanii','Female','16A','Bowling All Rounder',6,500),
+('Nirupama','Female','A4 503','Bowling All Rounder',10,500),
+('Amit Jaiswal','Male','A2-504','Batter',7,500),
+('Anupam Adgaonkar','Male','A3 401','Batting All Rounder',4,500),
+('Saurabh Purandare','Male','A3-506','Batter',5,500),
+('Mahesh','Male','A2/405','Batter',11,450),
+('Mihir Gambhire','Male','B1 703','Batting All Rounder',10,450),
+('Shilpa Wagh','Female','A2 601','Bowler',8,450),
+('Nalini Bhadane','Female','E1 602','Bowler',7,450),
+('Ishita Sharma','Female','A4/604','Batter',4,400),
+('Snehal Toke','Female','B2 703','Bowling All Rounder',1,400),
+('Mahesh Wagh','Male','A2 601','Batter',6,400),
+('Dipesh Merai','Male','A2-502','Batting All Rounder',9,400),
+('Rajveer Thorat','Male','F -401','Bowling All Rounder',3,350),
+('Jamir Sayyad','Male','RH No 5','Batting All Rounder',7,350),
+('Himanshu Saxena','Male','B2 503','Bowling All Rounder',9,350),
+('Lalita','Female','A3 505','Batting All Rounder',4,350),
+('Purva Harkal','Female','A3-201','Batter',2,350),
+('Manisha Bundiwal','Female','A2-504','Batting All Rounder',10,300),
+('Abhineet Srivastava','Male','A3 604','Batting All Rounder',12,300),
+('Avinash','Male','A4 503','Batter',4,300),
+('Advait Prashant Ghangale','Male','A2-701 ','Bowling All Rounder',5,250),
+('Rejish Pillai','Male','D1/201','Bowling All Rounder',1,250),
+('Anita Khodke','Female','RH 17','Bowler',6,250),
+('Anushka Badlani','Female','A/3 Flat No 702','Batting All Rounder',11,250),
+('Ashish Baronia','Male','A2-303','Batting All Rounder',12,250),
+('Khushi Soni','Female','RH8','Batter',2,250),
+('Rachit Bhatia','Male','A2 705','Bowling All Rounder',1,200),
+('Archit deokar','Male','A3 306','Bowler',8,200),
+('Siddhant karne','Male','E-1 502','Batting All Rounder',12,200),
+('Rajul Gupta','Male','B2 404','Batting All Rounder',4,200),
+('Prachi Srivastava','Female','A3-604','Batting All Rounder',3,200),
+('Ashwini Purohit','Female','B1/204','Bowler',2,150),
+('Alka Soni','Female','RH8','Batter',12,150),
+('Sujata Purandare','Female','A3 506','Batter',5,150),
+('Suvajit Sinha','Male','E3/202','Bowling All Rounder',3,150),
+('Itika','Female','A1-101','Batter',5,150),
+('Reyansh Karajgaonkar','Male','D1- 301','Bowling All Rounder',8,100),
+('Alok Singh','Male','A4-504 ','Bowling All Rounder',11,100),
+('Shruti Malushte','Female','E3-402','Batter',1,100),
+('Nitin Jayswal','Male','A4 701','Batter',10,100),
+('Aayush','Male','A2 305','Bowler',3,100),
+('Chinmay Das','Male','E1-402','Batter',2,100),
+('Dixit Jada','Male','A4-301','Batting All Rounder',3,100),
+('Rahul Badgujar','Male','E2-602','Batter',10,100),
+('Kapil Bhargava','Male','E2-202','Batting All Rounder',4,100),
+('Deepali Telang','Female','RH 23','Batting All Rounder',1,100),
+('Manasee joshi','Female','A1-205','Batter',11,100),
+('Kushagra Tare','Male','Rh-27','Bowling All Rounder',2,100),
+('Smruti Bajaj','Female','A4205','Bowler',9,100),
+('Sumit Khair','Male','A3/302','Batting All Rounder',7,100),
+('Akshay Ulmek','Male','G1-402','Batter',1,100),
+('Aavirrbhav Siingh','Male','D2/402','Bowler',7,100),
+('Piyush kumar','Male','G2 202','Bowler',4,100),
+('Mehak','Female','A1-101','Batter',3,100),
+('Yatharth Badgujar','Male','A1-101','Batter',9,100)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
@@ -785,3 +829,291 @@ $$;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- ============================================================
+-- DPL Scoring Updates — Run this in Supabase SQL Editor
+-- ============================================================
+
+-- 1. ADD: 4-wicket bonus (10 pts)
+INSERT INTO scoring_settings (key, value, category, description)
+VALUES ('bowl_4_wickets', 10, 'bowling', 'Bonus for 4 wickets in innings')
+ON CONFLICT (key) DO UPDATE SET value = 10, description = 'Bonus for 4 wickets in innings';
+
+-- 2. RENAME: "Above 9" → "9.01-12.00" (-6 pts, same value)
+UPDATE scoring_settings
+SET key = 'bowl_econ_9_12', description = 'Economy penalty: 9.01-12.00'
+WHERE key = 'bowl_econ_above_9';
+
+-- 3. ADD: Economy above 12 (-6 pts new tier, harsher)
+INSERT INTO scoring_settings (key, value, category, description)
+VALUES ('bowl_econ_above_12', -8, 'bowling', 'Economy penalty: Above 12.00')
+ON CONFLICT (key) DO UPDATE SET value = -8, description = 'Economy penalty: Above 12.00';
+
+-- ============================================================
+-- 4. FEMALE SCORING RULES — separate table
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS scoring_settings_female (
+  id SERIAL PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  value DECIMAL(10,2) NOT NULL,
+  category TEXT NOT NULL,
+  description TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE scoring_settings_female ENABLE ROW LEVEL SECURITY;
+
+-- Drop policies first (safe to re-run)
+DROP POLICY IF EXISTS "Female scoring visible to all" ON scoring_settings_female;
+DROP POLICY IF EXISTS "Admin can manage female scoring" ON scoring_settings_female;
+
+CREATE POLICY "Female scoring visible to all" ON scoring_settings_female FOR SELECT USING (TRUE);
+CREATE POLICY "Admin can manage female scoring" ON scoring_settings_female FOR ALL USING (
+  EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = TRUE)
+);
+
+-- Seed female scoring (same defaults as male — admin can customise via UI)
+INSERT INTO scoring_settings_female (key, value, category, description) VALUES
+  -- Batting
+  ('bat_run', 1, 'batting', 'Points per run'),
+  ('bat_four', 4, 'batting', 'Points per four (boundary)'),
+  ('bat_six', 6, 'batting', 'Points per six'),
+  ('bat_milestone_15_29', 4, 'batting', 'Bonus for 15-29 runs in an innings'),
+  ('bat_milestone_30_49', 8, 'batting', 'Bonus for 30-49 runs in an innings'),
+  ('bat_milestone_50_plus', 16, 'batting', 'Bonus for 50+ runs in an innings'),
+  ('bat_duck', -4, 'batting', 'Penalty for duck (0 runs, dismissed)'),
+  -- Strike Rate
+  ('bat_sr_150_plus', 6, 'batting', 'SR bonus: 150 and above'),
+  ('bat_sr_120_149', 4, 'batting', 'SR bonus: 120-149.99'),
+  ('bat_sr_100_119', 0, 'batting', 'SR neutral: 100-119.99'),
+  ('bat_sr_70_84', -2, 'batting', 'SR penalty: 70-84.99'),
+  ('bat_sr_50_69', -4, 'batting', 'SR penalty: 50-69.99'),
+  ('bat_sr_below_50', -6, 'batting', 'SR penalty: Below 50'),
+  -- Bowling
+  ('bowl_wicket', 25, 'bowling', 'Points per wicket'),
+  ('bowl_3_wickets', 8, 'bowling', 'Bonus for 3 wickets in innings'),
+  ('bowl_4_wickets', 10, 'bowling', 'Bonus for 4 wickets in innings'),
+  ('bowl_5_wickets', 16, 'bowling', 'Bonus for 5 wickets in innings'),
+  ('bowl_maiden', 12, 'bowling', 'Points per maiden over'),
+  ('bowl_wide', -2, 'bowling', 'Penalty per wide'),
+  ('bowl_no_ball', -2, 'bowling', 'Penalty per no ball'),
+  ('bowl_dot_ball', 1, 'bowling', 'Points per dot ball'),
+  -- Economy
+  ('bowl_econ_below_3', 6, 'bowling', 'Economy bonus: Below 3.00'),
+  ('bowl_econ_3_4_49', 4, 'bowling', 'Economy bonus: 3.00-4.49'),
+  ('bowl_econ_4_5_5', 2, 'bowling', 'Economy bonus: 4.50-5.99'),
+  ('bowl_econ_8_9', -4, 'bowling', 'Economy penalty: 8.00-9.00'),
+  ('bowl_econ_9_12', -6, 'bowling', 'Economy penalty: 9.01-12.00'),
+  ('bowl_econ_above_12', -8, 'bowling', 'Economy penalty: Above 12.00'),
+  -- Fielding
+  ('field_catch', 8, 'fielding', 'Points per catch'),
+  ('field_stumping', 4, 'fielding', 'Points per stumping'),
+  ('field_runout', 4, 'fielding', 'Points per run out'),
+  -- Multipliers
+  ('captain_multiplier', 2, 'multipliers', 'Captain points multiplier'),
+  ('vice_captain_multiplier', 1.5, 'multipliers', 'Vice-captain points multiplier')
+ON CONFLICT (key) DO NOTHING;
+
+-- ============================================================
+-- Update calculate_bowling_points function with new rules
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION calculate_bowling_points(
+  p_overs DECIMAL,
+  p_wickets INTEGER,
+  p_runs_conceded INTEGER,
+  p_maidens INTEGER,
+  p_wides INTEGER,
+  p_no_balls INTEGER,
+  p_dot_balls INTEGER,
+  p_did_bowl BOOLEAN,
+  p_gender TEXT DEFAULT 'Male'
+) RETURNS DECIMAL AS $$
+DECLARE
+  points DECIMAL := 0;
+  economy_rate DECIMAL;
+  tbl TEXT;
+BEGIN
+  IF NOT p_did_bowl OR p_overs = 0 THEN RETURN 0; END IF;
+
+  -- Pick scoring table based on gender
+  tbl := CASE WHEN LOWER(p_gender) = 'female' THEN 'scoring_settings_female' ELSE 'scoring_settings' END;
+
+  -- Wickets
+  IF tbl = 'scoring_settings_female' THEN
+    points := points + (p_wickets * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_wicket'));
+    IF p_wickets >= 5 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_5_wickets');
+    ELSIF p_wickets = 4 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_4_wickets');
+    ELSIF p_wickets = 3 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_3_wickets');
+    END IF;
+    points := points + (p_maidens * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_maiden'));
+    points := points + (p_wides   * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_wide'));
+    points := points + (p_no_balls * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_no_ball'));
+    points := points + (p_dot_balls * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_dot_ball'));
+    IF p_overs >= 1 THEN
+      economy_rate := p_runs_conceded::DECIMAL / p_overs;
+      IF    economy_rate < 3     THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_below_3');
+      ELSIF economy_rate <= 4.49 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_3_4_49');
+      ELSIF economy_rate <= 5.99 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_4_5_5');
+      ELSIF economy_rate > 12    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_above_12');
+      ELSIF economy_rate >= 9.01 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_9_12');
+      ELSIF economy_rate >= 8    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_8_9');
+      END IF;
+    END IF;
+  ELSE
+    points := points + (p_wickets * (SELECT value FROM scoring_settings WHERE key = 'bowl_wicket'));
+    IF p_wickets >= 5 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_5_wickets');
+    ELSIF p_wickets = 4 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_4_wickets');
+    ELSIF p_wickets = 3 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_3_wickets');
+    END IF;
+    points := points + (p_maidens   * (SELECT value FROM scoring_settings WHERE key = 'bowl_maiden'));
+    points := points + (p_wides     * (SELECT value FROM scoring_settings WHERE key = 'bowl_wide'));
+    points := points + (p_no_balls  * (SELECT value FROM scoring_settings WHERE key = 'bowl_no_ball'));
+    points := points + (p_dot_balls * (SELECT value FROM scoring_settings WHERE key = 'bowl_dot_ball'));
+    IF p_overs >= 1 THEN
+      economy_rate := p_runs_conceded::DECIMAL / p_overs;
+      IF    economy_rate < 3     THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_below_3');
+      ELSIF economy_rate <= 4.49 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_3_4_49');
+      ELSIF economy_rate <= 5.99 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_4_5_5');
+      ELSIF economy_rate > 12    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_above_12');
+      ELSIF economy_rate >= 9.01 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_9_12');
+      ELSIF economy_rate >= 8    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_8_9');
+      END IF;
+    END IF;
+  END IF;
+
+  RETURN points;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Update calculate_batting_points to support gender
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION calculate_batting_points(
+  p_runs INTEGER,
+  p_balls_faced INTEGER,
+  p_fours INTEGER,
+  p_sixes INTEGER,
+  p_is_out BOOLEAN,
+  p_did_bat BOOLEAN,
+  p_gender TEXT DEFAULT 'Male'
+) RETURNS DECIMAL AS $$
+DECLARE
+  points DECIMAL := 0;
+  strike_rate DECIMAL;
+BEGIN
+  IF NOT p_did_bat THEN RETURN 0; END IF;
+
+  IF LOWER(p_gender) = 'female' THEN
+    points := points + (p_runs   * (SELECT value FROM scoring_settings_female WHERE key = 'bat_run'));
+    points := points + (p_fours  * (SELECT value FROM scoring_settings_female WHERE key = 'bat_four'));
+    points := points + (p_sixes  * (SELECT value FROM scoring_settings_female WHERE key = 'bat_six'));
+    IF p_runs >= 50 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_milestone_50_plus');
+    ELSIF p_runs >= 30 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_milestone_30_49');
+    ELSIF p_runs >= 15 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_milestone_15_29');
+    END IF;
+    IF p_runs = 0 AND p_is_out THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_duck');
+    END IF;
+    IF p_balls_faced >= 5 THEN
+      strike_rate := (p_runs::DECIMAL / p_balls_faced) * 100;
+      IF    strike_rate >= 150 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_sr_150_plus');
+      ELSIF strike_rate >= 120 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_sr_120_149');
+      ELSIF strike_rate >= 100 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_sr_100_119');
+      ELSIF strike_rate >= 70  THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_sr_70_84');
+      ELSIF strike_rate >= 50  THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_sr_50_69');
+      ELSE                          points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_sr_below_50');
+      END IF;
+    END IF;
+  ELSE
+    points := points + (p_runs  * (SELECT value FROM scoring_settings WHERE key = 'bat_run'));
+    points := points + (p_fours * (SELECT value FROM scoring_settings WHERE key = 'bat_four'));
+    points := points + (p_sixes * (SELECT value FROM scoring_settings WHERE key = 'bat_six'));
+    IF p_runs >= 50 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_milestone_50_plus');
+    ELSIF p_runs >= 30 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_milestone_30_49');
+    ELSIF p_runs >= 15 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_milestone_15_29');
+    END IF;
+    IF p_runs = 0 AND p_is_out THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_duck');
+    END IF;
+    IF p_balls_faced >= 5 THEN
+      strike_rate := (p_runs::DECIMAL / p_balls_faced) * 100;
+      IF    strike_rate >= 150 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_sr_150_plus');
+      ELSIF strike_rate >= 120 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_sr_120_149');
+      ELSIF strike_rate >= 100 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_sr_100_119');
+      ELSIF strike_rate >= 70  THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_sr_70_84');
+      ELSIF strike_rate >= 50  THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_sr_50_69');
+      ELSE                          points := points + (SELECT value FROM scoring_settings WHERE key = 'bat_sr_below_50');
+      END IF;
+    END IF;
+  END IF;
+
+  RETURN points;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Update calculate_fielding_points to support gender
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION calculate_fielding_points(
+  p_catches INTEGER,
+  p_stumpings INTEGER,
+  p_run_outs INTEGER,
+  p_gender TEXT DEFAULT 'Male'
+) RETURNS DECIMAL AS $$
+DECLARE
+  points DECIMAL := 0;
+BEGIN
+  IF LOWER(p_gender) = 'female' THEN
+    points := points + (p_catches   * (SELECT value FROM scoring_settings_female WHERE key = 'field_catch'));
+    points := points + (p_stumpings * (SELECT value FROM scoring_settings_female WHERE key = 'field_stumping'));
+    points := points + (p_run_outs  * (SELECT value FROM scoring_settings_female WHERE key = 'field_runout'));
+  ELSE
+    points := points + (p_catches   * (SELECT value FROM scoring_settings WHERE key = 'field_catch'));
+    points := points + (p_stumpings * (SELECT value FROM scoring_settings WHERE key = 'field_stumping'));
+    points := points + (p_run_outs  * (SELECT value FROM scoring_settings WHERE key = 'field_runout'));
+  END IF;
+  RETURN points;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Update the trigger to pass player gender into functions
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION trigger_calculate_stats_points() RETURNS TRIGGER AS $$
+DECLARE
+  v_gender TEXT;
+BEGIN
+  -- Fetch player gender
+  SELECT gender INTO v_gender FROM players WHERE id = NEW.player_id;
+  v_gender := COALESCE(v_gender, 'Male');
+
+  NEW.batting_points  := calculate_batting_points(
+    NEW.runs, NEW.balls_faced, NEW.fours, NEW.sixes, NEW.is_out, NEW.did_bat, v_gender
+  );
+  NEW.bowling_points  := calculate_bowling_points(
+    NEW.overs_bowled, NEW.wickets, NEW.runs_conceded, NEW.maidens,
+    NEW.wides, NEW.no_balls, NEW.dot_balls, NEW.did_bowl, v_gender
+  );
+  NEW.fielding_points := calculate_fielding_points(NEW.catches, NEW.stumpings, NEW.run_outs, v_gender);
+  NEW.total_points    := NEW.batting_points + NEW.bowling_points + NEW.fielding_points;
+  NEW.updated_at      := NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
