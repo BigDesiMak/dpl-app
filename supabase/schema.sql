@@ -1117,3 +1117,109 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================
+-- Economy Rate Fix: 8.00-9.00 → 6.00-9.00
+-- Run in Supabase SQL Editor
+-- ============================================================
+
+-- 1. Update description in male scoring table
+UPDATE scoring_settings
+SET description = 'Economy penalty: 6.00-9.00'
+WHERE key = 'bowl_econ_8_9';
+
+-- 2. Update description in female scoring table
+UPDATE scoring_settings_female
+SET description = 'Economy penalty: 6.00-9.00'
+WHERE key = 'bowl_econ_8_9';
+
+-- 3. Update the bowling calculation function (male + female)
+--    Change threshold from >= 8 to >= 6
+CREATE OR REPLACE FUNCTION calculate_bowling_points(
+  p_overs DECIMAL,
+  p_wickets INTEGER,
+  p_runs_conceded INTEGER,
+  p_maidens INTEGER,
+  p_wides INTEGER,
+  p_no_balls INTEGER,
+  p_dot_balls INTEGER,
+  p_did_bowl BOOLEAN,
+  p_gender TEXT DEFAULT 'Male'
+) RETURNS DECIMAL AS $$
+DECLARE
+  points DECIMAL := 0;
+  economy_rate DECIMAL;
+BEGIN
+  IF NOT p_did_bowl OR p_overs = 0 THEN RETURN 0; END IF;
+
+  IF LOWER(p_gender) = 'female' THEN
+    points := points + (p_wickets * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_wicket'));
+    IF p_wickets >= 5 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_5_wickets');
+    ELSIF p_wickets = 4 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_4_wickets');
+    ELSIF p_wickets = 3 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_3_wickets');
+    END IF;
+    points := points + (p_maidens   * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_maiden'));
+    points := points + (p_wides     * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_wide'));
+    points := points + (p_no_balls  * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_no_ball'));
+    points := points + (p_dot_balls * (SELECT value FROM scoring_settings_female WHERE key = 'bowl_dot_ball'));
+    IF p_overs >= 1 THEN
+      economy_rate := p_runs_conceded::DECIMAL / p_overs;
+      IF    economy_rate < 3     THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_below_3');
+      ELSIF economy_rate <= 4.49 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_3_4_49');
+      ELSIF economy_rate <= 5.99 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_4_5_5');
+      ELSIF economy_rate > 12    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_above_12');
+      ELSIF economy_rate >= 9.01 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_9_12');
+      ELSIF economy_rate >= 6    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_8_9');
+      END IF;
+    END IF;
+  ELSE
+    points := points + (p_wickets * (SELECT value FROM scoring_settings WHERE key = 'bowl_wicket'));
+    IF p_wickets >= 5 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_5_wickets');
+    ELSIF p_wickets = 4 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_4_wickets');
+    ELSIF p_wickets = 3 THEN
+      points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_3_wickets');
+    END IF;
+    points := points + (p_maidens   * (SELECT value FROM scoring_settings WHERE key = 'bowl_maiden'));
+    points := points + (p_wides     * (SELECT value FROM scoring_settings WHERE key = 'bowl_wide'));
+    points := points + (p_no_balls  * (SELECT value FROM scoring_settings WHERE key = 'bowl_no_ball'));
+    points := points + (p_dot_balls * (SELECT value FROM scoring_settings WHERE key = 'bowl_dot_ball'));
+    IF p_overs >= 1 THEN
+      economy_rate := p_runs_conceded::DECIMAL / p_overs;
+      IF    economy_rate < 3     THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_below_3');
+      ELSIF economy_rate <= 4.49 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_3_4_49');
+      ELSIF economy_rate <= 5.99 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_4_5_5');
+      ELSIF economy_rate > 12    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_above_12');
+      ELSIF economy_rate >= 9.01 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_9_12');
+      ELSIF economy_rate >= 6    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_8_9');
+      END IF;
+    END IF;
+  END IF;
+
+  RETURN points;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Verify the updates
+SELECT 'Male'   AS gender, key, value, description FROM scoring_settings        WHERE key = 'bowl_econ_8_9'
+UNION ALL
+SELECT 'Female' AS gender, key, value, description FROM scoring_settings_female WHERE key = 'bowl_econ_8_9';
+
+-- Rename bowl_econ_8_9 → bowl_econ_6_9 in both scoring tables
+
+UPDATE scoring_settings
+SET key = 'bowl_econ_6_9'
+WHERE key = 'bowl_econ_8_9';
+
+UPDATE scoring_settings_female
+SET key = 'bowl_econ_6_9'
+WHERE key = 'bowl_econ_8_9';
+
+-- Verify
+SELECT 'Male'   AS gender, key, value, description FROM scoring_settings        WHERE key = 'bowl_econ_6_9'
+UNION ALL
+SELECT 'Female' AS gender, key, value, description FROM scoring_settings_female WHERE key = 'bowl_econ_6_9';

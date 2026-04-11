@@ -159,7 +159,7 @@ export default function AdminScoring() {
               <strong style={{ color: 'var(--cream)' }}>Economy Rate Tiers</strong><br />
               Below 3.00: +6pts<br />
               3.00–4.49: +4pts | 4.50–5.99: +2pts<br />
-              8.00–9.00: -4pts<br />
+              6.00–9.00: -4pts<br />
               <span style={{ color: 'var(--gold-400)' }}>9.01–12.00: -6pts ✨ UPDATED</span><br />
               <span style={{ color: 'var(--red-400)' }}>Above 12.00: -8pts ✨ NEW</span>
             </div>
