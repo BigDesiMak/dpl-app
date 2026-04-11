@@ -1119,18 +1119,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================
--- Economy Rate Fix: 8.00-9.00 → 6.00-9.00
+-- Economy Rate Fix: 8.00-9.00 → 8.01-9.00
 -- Run in Supabase SQL Editor
 -- ============================================================
 
 -- 1. Update description in male scoring table
 UPDATE scoring_settings
-SET description = 'Economy penalty: 6.00-9.00'
+SET description = 'Economy penalty: 8.01-9.00'
 WHERE key = 'bowl_econ_8_9';
 
 -- 2. Update description in female scoring table
 UPDATE scoring_settings_female
-SET description = 'Economy penalty: 6.00-9.00'
+SET description = 'Economy penalty: 8.01-9.00'
 WHERE key = 'bowl_econ_8_9';
 
 -- 3. Update the bowling calculation function (male + female)
@@ -1172,7 +1172,7 @@ BEGIN
       ELSIF economy_rate <= 5.99 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_4_5_5');
       ELSIF economy_rate > 12    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_above_12');
       ELSIF economy_rate >= 9.01 THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_9_12');
-      ELSIF economy_rate >= 6    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_8_9');
+      ELSIF economy_rate >= 8.01    THEN points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bowl_econ_8_9');
       END IF;
     END IF;
   ELSE
@@ -1195,7 +1195,7 @@ BEGIN
       ELSIF economy_rate <= 5.99 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_4_5_5');
       ELSIF economy_rate > 12    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_above_12');
       ELSIF economy_rate >= 9.01 THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_9_12');
-      ELSIF economy_rate >= 6    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_8_9');
+      ELSIF economy_rate >= 8.01    THEN points := points + (SELECT value FROM scoring_settings WHERE key = 'bowl_econ_8_9');
       END IF;
     END IF;
   END IF;
@@ -1209,17 +1209,113 @@ SELECT 'Male'   AS gender, key, value, description FROM scoring_settings        
 UNION ALL
 SELECT 'Female' AS gender, key, value, description FROM scoring_settings_female WHERE key = 'bowl_econ_8_9';
 
--- Rename bowl_econ_8_9 → bowl_econ_6_9 in both scoring tables
+-- Rename bowl_econ_8_9 → bowl_econ_8_9 in both scoring tables
 
 UPDATE scoring_settings
-SET key = 'bowl_econ_6_9'
-WHERE key = 'bowl_econ_8_9';
+SET key = 'bowl_econ_8_9'
+WHERE key = 'bowl_econ_6_9';
 
 UPDATE scoring_settings_female
-SET key = 'bowl_econ_6_9'
-WHERE key = 'bowl_econ_8_9';
+SET key = 'bowl_econ_8_9'
+WHERE key = 'bowl_econ_6_9';
 
 -- Verify
-SELECT 'Male'   AS gender, key, value, description FROM scoring_settings        WHERE key = 'bowl_econ_6_9'
+SELECT 'Male'   AS gender, key, value, description FROM scoring_settings        WHERE key = 'bowl_econ_8_9'
 UNION ALL
-SELECT 'Female' AS gender, key, value, description FROM scoring_settings_female WHERE key = 'bowl_econ_6_9';
+SELECT 'Female' AS gender, key, value, description FROM scoring_settings_female WHERE key = 'bowl_econ_8_9';
+
+
+-- ============================================================
+-- DPL 5-change update — Run in Supabase SQL Editor
+-- ============================================================
+
+-- ============================================================
+-- CHANGE 2: Man of the Match (10 pts, both genders)
+-- ============================================================
+INSERT INTO scoring_settings (key, value, category, description)
+VALUES ('motm', 10, 'general', 'Man of the Match bonus points')
+ON CONFLICT (key) DO UPDATE SET value = 10, description = 'Man of the Match bonus points';
+
+INSERT INTO scoring_settings_female (key, value, category, description)
+VALUES ('motm', 10, 'general', 'Man of the Match bonus points')
+ON CONFLICT (key) DO UPDATE SET value = 10, description = 'Man of the Match bonus points';
+
+-- ============================================================
+-- CHANGE 5: Add playing_bonus column + scoring key (4 pts)
+-- ============================================================
+INSERT INTO scoring_settings (key, value, category, description)
+VALUES ('playing_bonus', 4, 'general', 'Base points for every player who plays in a match')
+ON CONFLICT (key) DO UPDATE SET value = 4, description = 'Base points for every player who plays in a match';
+
+INSERT INTO scoring_settings_female (key, value, category, description)
+VALUES ('playing_bonus', 4, 'general', 'Base points for every player who plays in a match')
+ON CONFLICT (key) DO UPDATE SET value = 4, description = 'Base points for every player who plays in a match';
+
+-- ============================================================
+-- Add motm + playing_bonus columns to player_match_stats
+-- ============================================================
+ALTER TABLE player_match_stats
+  ADD COLUMN IF NOT EXISTS is_motm        BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS motm_points    DECIMAL(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS playing_bonus  DECIMAL(10,2) DEFAULT 0;
+
+-- ============================================================
+-- CHANGE 3 & 4: Remove substitute concept from DB
+-- team size = 8 (all playing), no transfers table changes needed
+-- Just update app_settings
+-- ============================================================
+UPDATE app_settings SET value = '8'  WHERE key = 'team_playing_males'   AND value = '6';
+UPDATE app_settings SET value = '0'  WHERE key = 'team_sub_males';
+UPDATE app_settings SET value = '0'  WHERE key = 'team_sub_females';
+-- Ensure team total is 8
+INSERT INTO app_settings (key, value, description)
+VALUES ('team_total', '8', 'Total players per fantasy team (all playing, no subs)')
+ON CONFLICT (key) DO UPDATE SET value = '8';
+
+-- ============================================================
+-- Updated trigger with playing_bonus + motm
+-- ============================================================
+CREATE OR REPLACE FUNCTION trigger_calculate_stats_points() RETURNS TRIGGER AS $$
+DECLARE
+  v_gender TEXT;
+  v_playing_bonus DECIMAL;
+  v_motm_pts      DECIMAL;
+BEGIN
+  SELECT gender INTO v_gender FROM players WHERE id = NEW.player_id;
+  v_gender := COALESCE(v_gender, 'Male');
+
+  -- Playing bonus (everyone who has any stat gets it)
+  IF LOWER(v_gender) = 'female' THEN
+    SELECT value INTO v_playing_bonus FROM scoring_settings_female WHERE key = 'playing_bonus';
+    SELECT value INTO v_motm_pts      FROM scoring_settings_female WHERE key = 'motm';
+  ELSE
+    SELECT value INTO v_playing_bonus FROM scoring_settings WHERE key = 'playing_bonus';
+    SELECT value INTO v_motm_pts      FROM scoring_settings WHERE key = 'motm';
+  END IF;
+
+  NEW.playing_bonus := v_playing_bonus;  -- always 4 pts for playing
+  NEW.motm_points   := CASE WHEN NEW.is_motm THEN v_motm_pts ELSE 0 END;
+
+  NEW.batting_points  := calculate_batting_points(
+    NEW.runs, NEW.balls_faced, NEW.fours, NEW.sixes, NEW.is_out, NEW.did_bat, v_gender
+  );
+  NEW.bowling_points  := calculate_bowling_points(
+    NEW.overs_bowled, NEW.wickets, NEW.runs_conceded, NEW.maidens,
+    NEW.wides, NEW.no_balls, NEW.dot_balls, NEW.did_bowl, v_gender
+  );
+  NEW.fielding_points := calculate_fielding_points(
+    NEW.catches, NEW.stumpings, NEW.run_outs, v_gender
+  );
+
+  NEW.total_points := NEW.playing_bonus
+                    + NEW.batting_points
+                    + NEW.bowling_points
+                    + NEW.fielding_points
+                    + NEW.motm_points;
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Verify
+SELECT key, value, description FROM scoring_settings WHERE key IN ('motm','playing_bonus','bowl_econ_6_9') ORDER BY key;
