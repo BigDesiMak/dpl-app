@@ -20,7 +20,7 @@ export default function AdminMatches() {
 
   async function loadData() {
     const [{ data: ms }, { data: ts }, { data: ps }] = await Promise.all([
-      supabase.from('matches').select('*, team1:team1_id(name,color), team2:team2_id(name,color), winner:winner_id(name), phase:phase_id(name)').order('match_number'),
+      supabase.from('matches').select('*, team1:team1_id(name,color), team2:team2_id(name,color), winner:winner_id(name), phase:phase_id(name)').order('match_number', { ascending: false }),
       supabase.from('dpl_teams').select('*').order('name'),
       supabase.from('phases').select('*').order('phase_number')
     ])

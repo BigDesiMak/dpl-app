@@ -30,21 +30,44 @@ export default function TeamSelection() {
   const [filterTeam, setFilterTeam]     = useState('All')
   const [search, setSearch]             = useState('')
   const [sortBy, setSortBy]             = useState('name_asc')
+  // CHANGE 2: multi-phase support
+  const [allPhasesForSelect, setAllPhasesForSelect] = useState([])
+  const [nextPhase, setNextPhase]         = useState(null)
+  const [workingPhase, setWorkingPhase]   = useState(null)
+  const [selectedPhaseId, setSelectedPhaseId] = useState(null)
 
   useEffect(() => { if (user) loadData() }, [user])
 
   async function loadData() {
     setLoading(true)
-    const { data: ph } = await supabase.from('phases').select('*').eq('is_active', true).maybeSingle()
-    setPhase(ph)
-    if (!ph) { setLoading(false); return }
+    const { data: allPhasesData } = await supabase.from('phases').select('*').order('phase_number')
+    const active = allPhasesData?.find(p => p.is_active)
+
+    // CHANGE 2: if active phase is locked, also allow picking next phase
+    const nextPhase = active?.is_locked
+      ? allPhasesData?.find(p => p.phase_number === (active.phase_number + 1)) || null
+      : null
+
+    // Default to active; if locked show next; user can switch via phaseId state
+    const targetPhase = active || null
+    setPhase(targetPhase)
+    setAllPhasesForSelect(allPhasesData || [])
+    setNextPhase(nextPhase)
+
+    if (!targetPhase && !nextPhase) { setLoading(false); return }
+
+    const workingPhaseId = selectedPhaseId || (active?.is_locked && nextPhase ? nextPhase.id : targetPhase?.id)
+    const workingPhase   = allPhasesData?.find(p => p.id === workingPhaseId) || targetPhase
+    setWorkingPhase(workingPhase)
 
     const [{ data: players }, { data: teams }, { data: ft }] = await Promise.all([
       supabase.from('players').select('*, dpl_team:dpl_team_id(id,name,short_name)').eq('is_active', true).order('name'),
       supabase.from('dpl_teams').select('*'),
-      supabase.from('fantasy_teams')
-        .select('*, players:fantasy_team_players(player_id, is_playing)')
-        .eq('user_id', user.id).eq('phase_id', ph.id).maybeSingle()
+      workingPhase
+        ? supabase.from('fantasy_teams')
+            .select('*, players:fantasy_team_players(player_id, is_playing)')
+            .eq('user_id', user.id).eq('phase_id', workingPhase.id).maybeSingle()
+        : { data: null }
     ])
 
     setAllPlayers(players || [])
@@ -56,12 +79,15 @@ export default function TeamSelection() {
       setSelectedIds(ft.players?.map(p => p.player_id) || [])
       setCaptainId(ft.captain_id)
       setVcId(ft.vice_captain_id)
+    } else {
+      setExistingTeam(null)
+      setTeamName(''); setSelectedIds([]); setCaptainId(null); setVcId(null)
     }
     setLoading(false)
   }
 
   // CHANGE 1: phase lock check
-  const phaseLocked = phase?.is_locked === true
+  const phaseLocked = workingPhase?.is_locked === true
 
   const selectedPlayers = useMemo(() => allPlayers.filter(p => selectedIds.includes(p.id)), [allPlayers, selectedIds])
   const spentBudget     = useMemo(() => selectedPlayers.reduce((s, p) => s + (p.auction_price || 0), 0), [selectedPlayers])
@@ -164,7 +190,7 @@ export default function TeamSelection() {
         await supabase.from('fantasy_team_players').delete().eq('fantasy_team_id', teamId)
       } else {
         const { data } = await supabase.from('fantasy_teams').insert({
-          user_id: user.id, phase_id: phase.id, team_name: teamName,
+          user_id: user.id, phase_id: workingPhase?.id || phase?.id, team_name: teamName,
           captain_id: captainId, vice_captain_id: vcId,
           total_budget: BUDGET, spent_budget: spentBudget
         }).select().single()
@@ -183,7 +209,7 @@ export default function TeamSelection() {
 
   if (loading) return <Layout><div className="loading-center"><div className="loading-spinner" /></div></Layout>
 
-  if (!phase) return (
+  if (!phase && !nextPhase && !workingPhase) return (
     <Layout>
       <div className="page-content">
         <div className="empty-state" style={{ paddingTop: 80 }}>
@@ -201,11 +227,28 @@ export default function TeamSelection() {
         <div className="page-header">
           <h1 className="page-title">{existingTeam ? 'Edit Your Team' : 'Build Your Team'}</h1>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <p className="page-subtitle" style={{ margin: 0 }}>{phase.name} · Budget: ₹{BUDGET.toLocaleString()} · 8 players (6M + 2F)</p>
+            <p className="page-subtitle" style={{ margin: 0 }}>{workingPhase?.name || phase?.name} · Budget: ₹{BUDGET.toLocaleString()} · 8 players (6M + 2F)</p>
             {phaseLocked
               ? <span className="badge badge-red">🔒 Phase Locked — View Only</span>
               : <span className="badge badge-green">🔓 Open for Editing</span>}
           </div>
+          {/* CHANGE 2: Phase switcher when active is locked */}
+          {phase?.is_locked && nextPhase && (
+            <div style={{ display:'flex', gap:8, marginTop:8, alignItems:'center', flexWrap:'wrap' }}>
+              <span style={{ fontSize:'0.82rem', color:'var(--gray-400)' }}>Build team for:</span>
+              {[phase, nextPhase].map(ph => (
+                <button key={ph.id}
+                  className={`btn btn-sm ${(workingPhase?.id || nextPhase?.id) === ph.id ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => {
+                    setSelectedPhaseId(ph.id)
+                    setExistingTeam(null); setSelectedIds([]); setCaptainId(null); setVcId(null); setTeamName('')
+                    setTimeout(() => loadData(), 0)
+                  }}>
+                  {ph.name}{ph.is_locked ? ' 🔒' : ' ✏️'}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* CHANGE 1: Locked banner */}
@@ -224,7 +267,7 @@ export default function TeamSelection() {
             padding: '10px 16px', marginBottom: 16, borderRadius: 8, fontSize: '0.85rem',
             background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', color: 'var(--gray-400)'
           }}>
-            📅 Each phase has its own independent team — create freely for <strong style={{ color: 'var(--gold-400)' }}>{phase.name}</strong>.
+            📅 Each phase has its own independent team — create freely for <strong style={{ color: 'var(--gold-400)' }}>{workingPhase?.name || phase?.name}</strong>.
           </div>
         )}
 
