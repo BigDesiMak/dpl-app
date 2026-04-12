@@ -17,6 +17,7 @@ import AdminMatchStats from './pages/admin/AdminMatchStats'
 import AdminTeams from './pages/admin/AdminTeams'
 import AdminScoring from './pages/admin/AdminScoring'
 import AdminPhases from './pages/admin/AdminPhases'
+import AdminUsers  from './pages/admin/AdminUsers'
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, profile, loading } = useAuth()
@@ -49,8 +50,6 @@ function AppRoutes() {
       <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
       <Route path="/players" element={<ProtectedRoute><PlayerStats /></ProtectedRoute>} />
       <Route path="/all-teams" element={<ProtectedRoute><AllTeams /></ProtectedRoute>} />
-      <Route path="/scoring" element={<ProtectedRoute><AdminScoring readOnly /></ProtectedRoute>} />
-      <Route path="/phases" element={<ProtectedRoute><AdminPhases readOnly /></ProtectedRoute>} />
 
       {/* Protected admin routes */}
       <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
@@ -60,6 +59,7 @@ function AppRoutes() {
       <Route path="/admin/teams" element={<ProtectedRoute adminOnly><AdminTeams /></ProtectedRoute>} />
       <Route path="/admin/scoring" element={<ProtectedRoute adminOnly><AdminScoring /></ProtectedRoute>} />
       <Route path="/admin/phases" element={<ProtectedRoute adminOnly><AdminPhases /></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

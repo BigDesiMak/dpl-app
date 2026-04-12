@@ -3,7 +3,6 @@ import { supabase } from '../supabaseClient'
 
 const AuthContext = createContext({})
 
-// Always points to the current domain — works on localhost AND Vercel
 const REDIRECT_URL = `${window.location.origin}/auth/callback`
 
 export function AuthProvider({ children }) {
@@ -11,49 +10,87 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Fetch profile — returns null if deleted, and signs out the session
   async function fetchProfile(userId) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .maybeSingle()   // won't throw if row missing
+
+    if (!data) {
+      // Profile deleted — kill the session immediately
+      console.warn('DPL: profile not found for user', userId, '— signing out')
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+      return
+    }
+
     setProfile(data)
   }
 
   useEffect(() => {
-    // Processes any tokens in the URL (email confirm / magic link)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
-      setLoading(false)
+      else setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          return
+        }
         setUser(session?.user ?? null)
         if (session?.user) fetchProfile(session.user.id)
-        else setProfile(null)
-        setLoading(false)
+        else {
+          setProfile(null)
+          setLoading(false)
+        }
       }
     )
 
     return () => subscription.unsubscribe()
   }, [])
 
+  // Set loading false after profile fetch completes
+  useEffect(() => {
+    if (profile !== null || user === null) setLoading(false)
+  }, [profile, user])
+
   async function signIn(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (!error && data.user) await fetchProfile(data.user.id)
-    return { data, error }
+    if (error) return { data, error }
+
+    // Immediately check profile exists
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', data.user.id)
+      .maybeSingle()
+
+    if (!profileData) {
+      // Account deleted — revoke session right away
+      await supabase.auth.signOut()
+      return {
+        data: null,
+        error: { message: 'This account has been removed. Please contact the admin.' }
+      }
+    }
+
+    await fetchProfile(data.user.id)
+    return { data, error: null }
   }
 
   async function signUp(email, password, meta = {}) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: meta,
-        emailRedirectTo: REDIRECT_URL   // uses current domain automatically
-      }
+      options: { data: meta, emailRedirectTo: REDIRECT_URL }
     })
     return { data, error }
   }

@@ -1384,3 +1384,57 @@ END;
 $$ LANGUAGE plpgsql;
 
 SELECT 'Done — playing_bonus is now opt-in per player' AS status;
+
+-- ============================================================
+-- Fix: Deleting from profiles now fully removes the auth user
+-- Run in Supabase SQL Editor
+-- ============================================================
+
+-- 1. When a profile row is deleted, also delete from auth.users
+--    This cascades the deletion to the auth system
+CREATE OR REPLACE FUNCTION delete_auth_user_on_profile_delete()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Delete the user from Supabase Auth
+  DELETE FROM auth.users WHERE id = OLD.id;
+  RETURN OLD;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_profile_deleted ON profiles;
+CREATE TRIGGER on_profile_deleted
+  AFTER DELETE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION delete_auth_user_on_profile_delete();
+
+-- 2. Also handle the reverse: deleting from auth.users removes the profile
+--    (The profiles table already has ON DELETE CASCADE from the FK, so this
+--     is already handled. Just confirming it exists.)
+-- ALTER TABLE profiles
+--   DROP CONSTRAINT IF EXISTS profiles_id_fkey,
+--   ADD CONSTRAINT profiles_id_fkey
+--     FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+-- ^ Already in schema.sql — no need to re-run unless you see an error.
+
+-- 3. Invalidate all existing sessions for a specific user immediately
+--    Admin can call this from SQL Editor when needed:
+--    SELECT invalidate_user_sessions('user-uuid-here');
+CREATE OR REPLACE FUNCTION invalidate_user_sessions(target_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Delete all refresh tokens for this user, forcing re-login
+  DELETE FROM auth.refresh_tokens WHERE user_id = target_user_id;
+  DELETE FROM auth.sessions       WHERE user_id = target_user_id;
+END;
+$$;
+
+-- Verify trigger exists
+SELECT trigger_name, event_manipulation, action_timing
+FROM information_schema.triggers
+WHERE trigger_name = 'on_profile_deleted';
