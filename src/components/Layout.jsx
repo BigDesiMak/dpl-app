@@ -39,6 +39,7 @@ export default function Layout({ children }) {
               <NavLink to="/leaderboard" className={({isActive}) => `nav-link${isActive?' active':''}`}>Leaderboard</NavLink>
               <NavLink to="/players" className={({isActive}) => `nav-link${isActive?' active':''}`}>Players</NavLink>
               <NavLink to="/all-teams" className={({isActive}) => `nav-link${isActive?' active':''}`}>All Teams</NavLink>
+              <NavLink to="/scoring" className={({isActive}) => `nav-link${isActive?' active':''}`}>Scoring</NavLink>
             </>
           )}
         </div>

@@ -49,6 +49,7 @@ function AppRoutes() {
       <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
       <Route path="/players" element={<ProtectedRoute><PlayerStats /></ProtectedRoute>} />
       <Route path="/all-teams" element={<ProtectedRoute><AllTeams /></ProtectedRoute>} />
+      <Route path="/scoring" element={<ProtectedRoute><AdminScoring readOnly /></ProtectedRoute>} />
 
       {/* Protected admin routes */}
       <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />

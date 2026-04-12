@@ -3,7 +3,7 @@ import Layout from '../../components/Layout'
 import { supabase } from '../../supabaseClient'
 import toast from 'react-hot-toast'
 
-export default function AdminScoring() {
+export default function AdminScoring({ readOnly = false }) {
   const [maleSettings, setMaleSettings]     = useState([])
   const [femaleSettings, setFemaleSettings] = useState([])
   const [changedMale, setChangedMale]       = useState({})
@@ -14,6 +14,7 @@ export default function AdminScoring() {
   // CHANGE 4: global scoring lock
   const [scoringLocked, setScoringLocked]   = useState(false)
   const [lockSaving, setLockSaving]         = useState(false)
+  const readOnlyMode = readOnly || scoringLocked
 
   useEffect(() => { loadSettings() }, [])
 
@@ -31,6 +32,7 @@ export default function AdminScoring() {
 
   // CHANGE 4: toggle lock/unlock for all scoring rules
   async function toggleScoringLock() {
+    if (readOnly) return
     setLockSaving(true)
     const newVal = !scoringLocked
     try {
@@ -47,19 +49,21 @@ export default function AdminScoring() {
   }
 
   function setMaleVal(key, value) {
+    if (readOnly) return
     if (scoringLocked) { toast.error('🔒 Scoring is locked — unlock first to edit'); return }
     setChangedMale(c => ({ ...c, [key]: value }))
     setMaleSettings(s => s.map(x => x.key === key ? { ...x, value: parseFloat(value) } : x))
   }
 
   function setFemaleVal(key, value) {
+    if (readOnly) return
     if (scoringLocked) { toast.error('🔒 Scoring is locked — unlock first to edit'); return }
     setChangedFemale(c => ({ ...c, [key]: value }))
     setFemaleSettings(s => s.map(x => x.key === key ? { ...x, value: parseFloat(value) } : x))
   }
 
   async function copyMaleToFemale() {
-    if (scoringLocked) { toast.error('🔒 Scoring is locked'); return }
+    if (readOnly || scoringLocked) { toast.error('🔒 Scoring is locked or read-only'); return }
     const newChanged = {}
     maleSettings.forEach(s => { newChanged[s.key] = s.value })
     setChangedFemale(newChanged)
@@ -71,6 +75,7 @@ export default function AdminScoring() {
   }
 
   async function saveAll() {
+    if (readOnly) return
     if (scoringLocked) { toast.error('🔒 Scoring is locked — unlock first'); return }
     const maleEntries   = Object.entries(changedMale)
     const femaleEntries = Object.entries(changedFemale)
@@ -120,11 +125,11 @@ export default function AdminScoring() {
                     <div style={{ fontSize: '0.72rem', color: 'var(--gray-400)', marginBottom: 2 }}>{s.description}</div>
                   )}
                   <input type="number" step="0.5" className="form-input"
-                    disabled={scoringLocked}
+                    disabled={readOnlyMode}
                     style={{
                       borderColor: changed[s.key] !== undefined ? 'var(--gold-400)' : undefined,
-                      opacity: scoringLocked ? 0.5 : 1,
-                      cursor: scoringLocked ? 'not-allowed' : undefined
+                      opacity: readOnlyMode ? 0.5 : 1,
+                      cursor: readOnlyMode ? 'not-allowed' : undefined
                     }}
                     value={s.value}
                     onChange={e => onSet(s.key, e.target.value)}
@@ -147,27 +152,40 @@ export default function AdminScoring() {
         <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <h1 className="page-title">Scoring Rules ⚙️</h1>
-            <p className="page-subtitle">Configure fantasy point values for Male and Female players</p>
+            <p className="page-subtitle">
+              {readOnly ? 'View the scoring system in read-only mode.' : 'Configure fantasy point values for Male and Female players'}
+            </p>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {/* CHANGE 4: Lock/Unlock button */}
-            <button
-              className={`btn btn-lg ${scoringLocked ? 'btn-secondary' : 'btn-danger'}`}
-              onClick={toggleScoringLock}
-              disabled={lockSaving}
-              title={scoringLocked ? 'Unlock scoring rules to allow edits' : 'Lock scoring rules to prevent accidental changes'}
-            >
-              {lockSaving ? '...' : scoringLocked ? '🔓 Unlock Scoring' : '🔒 Lock Scoring'}
-            </button>
-            <button className="btn btn-primary" onClick={saveAll}
-              disabled={saving || totalChanged === 0 || scoringLocked}>
-              {saving ? 'Saving...' : `💾 Save${totalChanged > 0 ? ` (${totalChanged})` : ''}`}
-            </button>
+            {!readOnly && (
+              <>
+                <button
+                  className={`btn btn-lg ${scoringLocked ? 'btn-secondary' : 'btn-danger'}`}
+                  onClick={toggleScoringLock}
+                  disabled={lockSaving}
+                  title={scoringLocked ? 'Unlock scoring rules to allow edits' : 'Lock scoring rules to prevent accidental changes'}
+                >
+                  {lockSaving ? '...' : scoringLocked ? '🔓 Unlock Scoring' : '🔒 Lock Scoring'}
+                </button>
+                <button className="btn btn-primary" onClick={saveAll}
+                  disabled={saving || totalChanged === 0 || scoringLocked || readOnly}>
+                  {saving ? 'Saving...' : `💾 Save${totalChanged > 0 ? ` (${totalChanged})` : ''}`}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         {/* CHANGE 4: Lock status banner */}
-        {scoringLocked ? (
+{readOnly ? (
+            <div style={{
+              padding: '12px 18px', marginBottom: 20, borderRadius: 10, fontSize: '0.875rem',
+              background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.3)',
+              color: 'var(--blue-200)', display: 'flex', gap: 10, alignItems: 'center'
+            }}>
+              📘 <strong>Read-only scoring rules.</strong> All players can view these values, but only admins can modify them.
+            </div>
+          ) : scoringLocked ? (
           <div style={{
             padding: '12px 18px', marginBottom: 20, borderRadius: 10, fontSize: '0.875rem',
             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
@@ -232,7 +250,7 @@ export default function AdminScoring() {
               <div style={{ fontSize: '0.875rem', color: 'var(--gray-400)' }}>
                 Female scoring rules are <strong style={{ color: 'var(--cream)' }}>independent</strong> from male rules.
               </div>
-              <button className="btn btn-secondary btn-sm" onClick={copyMaleToFemale} disabled={scoringLocked}>
+              <button className="btn btn-secondary btn-sm" onClick={copyMaleToFemale} disabled={readOnlyMode}>
                 ⬇ Copy from Male
               </button>
             </div>
@@ -240,16 +258,18 @@ export default function AdminScoring() {
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24, gap: 12 }}>
-          <button className={`btn btn-lg ${scoringLocked ? 'btn-secondary' : 'btn-danger'}`}
-            onClick={toggleScoringLock} disabled={lockSaving}>
-            {lockSaving ? '...' : scoringLocked ? '🔓 Unlock Scoring' : '🔒 Lock Scoring'}
-          </button>
-          <button className="btn btn-primary btn-lg" onClick={saveAll}
-            disabled={saving || totalChanged === 0 || scoringLocked}>
-            {saving ? 'Saving...' : `💾 Save All${totalChanged > 0 ? ` (${totalChanged})` : ''}`}
-          </button>
-        </div>
+        {!readOnly && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24, gap: 12 }}>
+            <button className={`btn btn-lg ${scoringLocked ? 'btn-secondary' : 'btn-danger'}`}
+              onClick={toggleScoringLock} disabled={lockSaving}>
+              {lockSaving ? '...' : scoringLocked ? '🔓 Unlock Scoring' : '🔒 Lock Scoring'}
+            </button>
+            <button className="btn btn-primary btn-lg" onClick={saveAll}
+              disabled={saving || totalChanged === 0 || scoringLocked || readOnly}>
+              {saving ? 'Saving...' : `💾 Save All${totalChanged > 0 ? ` (${totalChanged})` : ''}`}
+            </button>
+          </div>
+        )}
       </div>
     </Layout>
   )
