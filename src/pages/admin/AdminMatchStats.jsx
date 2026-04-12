@@ -10,7 +10,8 @@ const BLANK = {
   did_bowl:false, overs_bowled:0, wickets:0, runs_conceded:0,
   maidens:0, wides:0, no_balls:0, dot_balls:0,
   catches:0, stumpings:0, run_outs:0,
-  is_motm:false
+  is_motm:false,
+  is_playing_bonus:false
 }
 
 function Num({ pid, field, label, step=1, stats, onChange }) {
@@ -79,7 +80,8 @@ export default function AdminMatchStats() {
         runs_conceded:row.runs_conceded, maidens:row.maidens, wides:row.wides,
         no_balls:row.no_balls, dot_balls:row.dot_balls,
         catches:row.catches, stumpings:row.stumpings, run_outs:row.run_outs,
-        is_motm:row.is_motm||false
+        is_motm:row.is_motm||false,
+        is_playing_bonus:row.is_playing_bonus||false
       }
     })
     setExistingIds(idMap); setStats(statMap)
@@ -350,10 +352,19 @@ export default function AdminMatchStats() {
                       )}
                     </div>
 
-                    {/* Playing bonus notice */}
-                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16,fontSize:'0.82rem',color:'var(--green-300)'}}>
-                      <span>🟢</span>
-                      <span>+4 playing bonus points applied automatically for every player with stats</span>
+                    {/* CHANGE 2: Playing bonus checkbox */}
+                    <div style={{
+                      display:'flex',alignItems:'center',gap:12,marginBottom:16,
+                      padding:'10px 14px',borderRadius:8,
+                      background:s.is_playing_bonus?'rgba(34,135,92,0.1)':'var(--green-900)',
+                      border:`1px solid ${s.is_playing_bonus?'var(--green-500)':'var(--green-700)'}`
+                    }}>
+                      <label style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',fontWeight:700,color:s.is_playing_bonus?'var(--green-300)':'var(--gray-400)'}}>
+                        <input type="checkbox" checked={s.is_playing_bonus}
+                          onChange={e=>handleBool(player.id,'is_playing_bonus',e.target.checked)}/>
+                        🟢 Playing Bonus (+4 pts)
+                      </label>
+                      <span style={{fontSize:'0.75rem',color:'var(--gray-400)'}}>Check if player played in this match</span>
                     </div>
 
                     {/* BATTING */}

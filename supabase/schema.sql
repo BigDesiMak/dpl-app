@@ -1319,3 +1319,65 @@ $$ LANGUAGE plpgsql;
 
 -- Verify
 SELECT key, value, description FROM scoring_settings WHERE key IN ('motm','playing_bonus','bowl_econ_6_9') ORDER BY key;
+
+-- ============================================================
+-- DPL Changes batch 6
+-- Run in Supabase SQL Editor
+-- ============================================================
+
+-- CHANGE 2: playing_bonus is now opt-in per player (checkbox)
+-- Add is_playing_bonus column to player_match_stats
+ALTER TABLE player_match_stats
+  ADD COLUMN IF NOT EXISTS is_playing_bonus BOOLEAN DEFAULT FALSE;
+
+-- CHANGE 4: Add is_locked column to scoring_settings
+ALTER TABLE scoring_settings
+  ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE scoring_settings_female
+  ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
+
+-- Updated trigger: playing_bonus only when is_playing_bonus = TRUE
+CREATE OR REPLACE FUNCTION trigger_calculate_stats_points() RETURNS TRIGGER AS $$
+DECLARE
+  v_gender        TEXT;
+  v_playing_bonus DECIMAL;
+  v_motm_pts      DECIMAL;
+BEGIN
+  SELECT gender INTO v_gender FROM players WHERE id = NEW.player_id;
+  v_gender := COALESCE(v_gender, 'Male');
+
+  IF LOWER(v_gender) = 'female' THEN
+    SELECT value INTO v_playing_bonus FROM scoring_settings_female WHERE key = 'playing_bonus';
+    SELECT value INTO v_motm_pts      FROM scoring_settings_female WHERE key = 'motm';
+  ELSE
+    SELECT value INTO v_playing_bonus FROM scoring_settings WHERE key = 'playing_bonus';
+    SELECT value INTO v_motm_pts      FROM scoring_settings WHERE key = 'motm';
+  END IF;
+
+  -- CHANGE 2: only award playing bonus if checkbox is ticked
+  NEW.playing_bonus := CASE WHEN NEW.is_playing_bonus THEN v_playing_bonus ELSE 0 END;
+  NEW.motm_points   := CASE WHEN NEW.is_motm          THEN v_motm_pts      ELSE 0 END;
+
+  NEW.batting_points  := calculate_batting_points(
+    NEW.runs, NEW.balls_faced, NEW.fours, NEW.sixes, NEW.is_out, NEW.did_bat, v_gender
+  );
+  NEW.bowling_points  := calculate_bowling_points(
+    NEW.overs_bowled, NEW.wickets, NEW.runs_conceded, NEW.maidens,
+    NEW.wides, NEW.no_balls, NEW.dot_balls, NEW.did_bowl, v_gender
+  );
+  NEW.fielding_points := calculate_fielding_points(
+    NEW.catches, NEW.stumpings, NEW.run_outs, v_gender
+  );
+
+  NEW.total_points := NEW.playing_bonus
+                    + NEW.batting_points
+                    + NEW.bowling_points
+                    + NEW.fielding_points
+                    + NEW.motm_points;
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT 'Done — playing_bonus is now opt-in per player' AS status;
