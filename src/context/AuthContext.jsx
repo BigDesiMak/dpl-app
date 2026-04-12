@@ -3,35 +3,39 @@ import { supabase } from '../supabaseClient'
 
 const AuthContext = createContext({})
 
+// Always points to the current domain — works on localhost AND Vercel
+const REDIRECT_URL = `${window.location.origin}/auth/callback`
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser]       = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   async function fetchProfile(userId) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
     setProfile(data)
   }
 
   useEffect(() => {
-    // Get initial session — also processes tokens from URL hash (email confirm links)
+    // Processes any tokens in the URL (email confirm / magic link)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       setLoading(false)
     })
 
-    // Listen for all auth changes (sign in, sign out, token refresh, email confirmation)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+        if (session?.user) fetchProfile(session.user.id)
+        else setProfile(null)
+        setLoading(false)
       }
-      // Mark loading done on any auth event
-      setLoading(false)
-    })
+    )
 
     return () => subscription.unsubscribe()
   }, [])
@@ -48,8 +52,7 @@ export function AuthProvider({ children }) {
       password,
       options: {
         data: meta,
-        // Tell Supabase where to redirect after email confirmation
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        emailRedirectTo: REDIRECT_URL   // uses current domain automatically
       }
     })
     return { data, error }
