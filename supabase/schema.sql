@@ -879,6 +879,7 @@ INSERT INTO scoring_settings_female (key, value, category, description) VALUES
   ('bat_run', 1, 'batting', 'Points per run'),
   ('bat_four', 4, 'batting', 'Points per four (boundary)'),
   ('bat_six', 6, 'batting', 'Points per six'),
+  ('bat_runs_8_bonus', 8, 'batting', 'Bonus for scoring 8+ runs (female only)')
   ('bat_milestone_15_29', 4, 'batting', 'Bonus for 15-29 runs in an innings'),
   ('bat_milestone_30_49', 8, 'batting', 'Bonus for 30-49 runs in an innings'),
   ('bat_milestone_50_plus', 16, 'batting', 'Bonus for 50+ runs in an innings'),
@@ -1016,7 +1017,9 @@ BEGIN
     points := points + (p_runs   * (SELECT value FROM scoring_settings_female WHERE key = 'bat_run'));
     points := points + (p_fours  * (SELECT value FROM scoring_settings_female WHERE key = 'bat_four'));
     points := points + (p_sixes  * (SELECT value FROM scoring_settings_female WHERE key = 'bat_six'));
-    IF p_runs >= 50 THEN
+     IF p_runs >= 8 THEN
+      points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_runs_8_bonus');
+    ELSIF p_runs >= 50 THEN
       points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_milestone_50_plus');
     ELSIF p_runs >= 30 THEN
       points := points + (SELECT value FROM scoring_settings_female WHERE key = 'bat_milestone_30_49');
