@@ -3,7 +3,7 @@ import Layout from '../../components/Layout'
 import { supabase } from '../../supabaseClient'
 import toast from 'react-hot-toast'
 
-export default function AdminPhases() {
+export default function AdminPhases({ readOnly = false }) {
   const [phases, setPhases] = useState([])
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState({})
@@ -54,7 +54,7 @@ export default function AdminPhases() {
   return (
     <Layout>
       <div className="page-content">
-        <div className="page-header"><h1 className="page-title">Phases 📅</h1><p className="page-subtitle">Manage DPL season phases</p></div>
+        <div className="page-header"><h1 className="page-title">Phases 📅</h1><p className="page-subtitle">{readOnly ? 'View the current phase schedule' : 'Manage DPL season phases'}</p></div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {phases.map(p => (
@@ -75,26 +75,15 @@ export default function AdminPhases() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {!p.is_active && <button className="btn btn-primary btn-sm" onClick={() => setActive(p)}>▶ Set Active</button>}
-                  <button className={`btn btn-sm ${p.is_locked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => toggleLock(p)}>
+                  {!p.is_active && !readOnly && <button className="btn btn-primary btn-sm" onClick={() => setActive(p)}>▶ Set Active</button>}
+                  {!readOnly && <button className={`btn btn-sm ${p.is_locked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => toggleLock(p)}>
                     {p.is_locked ? '🔓 Unlock' : '🔒 Lock'}
-                  </button>
-                  <button className="btn btn-secondary btn-sm" onClick={() => openEdit(p)}>Edit</button>
+                  </button>}
+                  {!readOnly && <button className="btn btn-secondary btn-sm" onClick={() => openEdit(p)}>Edit</button>}
                 </div>
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="card mt-4">
-          <div style={{ fontWeight: 700, marginBottom: 12, color: 'var(--gold-400)' }}>📋 Phase Rules Guide</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--gray-400)', lineHeight: 1.8 }}>
-            <div><strong style={{color:'var(--cream)'}}>Phase 1</strong> — First 15 League Matches. No transfers allowed. Max 2 players from same DPL team.</div>
-            <div><strong style={{color:'var(--cream)'}}>Phase 2</strong> — Remaining League Matches. Up to 3 transfers allowed before phase starts. Unused transfers do NOT carry forward.</div>
-            <div><strong style={{color:'var(--cream)'}}>Phase 3</strong> — Semi-finals & Finals. No transfers. Max 2 players from same DPL team.</div>
-            <div><strong style={{color:'var(--cream)'}}>Phase 4</strong> — Super Finals / 3rd Place. Max 3 players from same DPL team allowed.</div>
-            <div style={{marginTop:8}}>Players who are retrenched/newly added mid-phase are NOT counted against DPL team limits.</div>
-          </div>
         </div>
 
         {modal && (
