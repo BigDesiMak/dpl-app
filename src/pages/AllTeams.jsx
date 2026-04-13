@@ -7,6 +7,7 @@ export default function AllTeams() {
   const { user }  = useAuth()
   const [phases, setPhases]           = useState([])
   const [selectedPhase, setSelectedPhase] = useState(null)
+  const [currentPhase, setCurrentPhase] = useState(null)
   const [teams, setTeams]             = useState([])
   const [selected, setSelected]       = useState(null)   // expanded team
   const [teamPlayers, setTeamPlayers] = useState([])
@@ -15,14 +16,22 @@ export default function AllTeams() {
   const [search, setSearch]           = useState('')
 
   useEffect(() => { loadPhases() }, [])
-  useEffect(() => { if (selectedPhase) loadTeams(selectedPhase) }, [selectedPhase])
+  useEffect(() => { if (selectedPhase) {
+    const phase = phases.find(p => p.id === selectedPhase)
+    setCurrentPhase(phase)
+    loadTeams(selectedPhase)
+  } }, [selectedPhase, phases])
 
   async function loadPhases() {
     const { data } = await supabase.from('phases').select('*').order('phase_number')
     setPhases(data || [])
     const active = data?.find(p => p.is_active) || data?.[0]
-    if (active) setSelectedPhase(active.id)
-    else setLoading(false)
+    if (active) {
+      setSelectedPhase(active.id)
+      setCurrentPhase(active)
+    } else {
+      setLoading(false)
+    }
   }
 
   async function loadTeams(phaseId) {
@@ -74,10 +83,21 @@ export default function AllTeams() {
             <button key={p.id}
               className={`btn ${selectedPhase === p.id ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => { setSelectedPhase(p.id); setSelected(null) }}>
-              {p.name}{p.is_active ? ' 🔴' : ''}
+              {p.name}{p.is_active ? ' 🔴' : ''}{p.is_locked ? ' 🔒' : ''}
             </button>
           ))}
         </div>
+
+        {/* Phase locked status */}
+        {!loading && currentPhase && !currentPhase.is_locked && (
+          <div style={{
+            padding: '14px 18px', marginBottom: 20, borderRadius: 10, fontSize: '0.9rem',
+            background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.3)',
+            color: 'var(--blue-400)', fontWeight: 600, display: 'flex', gap: 10, alignItems: 'center'
+          }}>
+            🔓 <span>Teams are only visible after the phase is locked by the admin.</span>
+          </div>
+        )}
 
         {/* Search */}
         <div className="filter-bar">
@@ -90,6 +110,8 @@ export default function AllTeams() {
 
         {loading ? (
           <div className="loading-center" style={{ minHeight:200 }}><div className="loading-spinner"/></div>
+        ) : !currentPhase?.is_locked ? (
+          <div className="empty-state"><div className="empty-state-icon">🔒</div><div className="empty-state-title">Phase Not Locked</div><div className="empty-state-desc">Teams will be visible once the admin locks this phase</div></div>
         ) : filtered.length === 0 ? (
           <div className="empty-state"><div className="empty-state-icon">🛡️</div><div className="empty-state-title">No teams registered for this phase</div></div>
         ) : (
