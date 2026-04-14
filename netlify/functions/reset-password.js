@@ -24,7 +24,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { userId } = JSON.parse(event.body)
+    const { userId, newPassword } = JSON.parse(event.body)
 
     if (!userId) {
       return {
@@ -33,9 +33,16 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // Reset password to default
+    if (!newPassword || newPassword.length < 6) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Password must be at least 6 characters' })
+      }
+    }
+
+    // Reset password to the provided password
     const { error } = await supabase.auth.admin.updateUserById(userId, {
-      password: '123456'
+      password: newPassword
     })
 
     if (error) {
@@ -48,7 +55,7 @@ exports.handler = async (event, context) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Password reset to 123456' })
+      body: JSON.stringify({ success: true, message: 'Password reset successfully' })
     }
   } catch (error) {
     console.error('Function error:', error)

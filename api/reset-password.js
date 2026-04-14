@@ -20,15 +20,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId } = req.body
+    const { userId, newPassword } = req.body
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' })
     }
 
-    // Reset password to default
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' })
+    }
+
+    // Reset password to the provided password
     const { error } = await supabase.auth.admin.updateUserById(userId, {
-      password: '123456'
+      password: newPassword
     })
 
     if (error) {
@@ -36,7 +40,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to reset password' })
     }
 
-    return res.status(200).json({ success: true, message: 'Password reset to 123456' })
+    return res.status(200).json({ success: true, message: 'Password reset successfully' })
   } catch (error) {
     console.error('Function error:', error)
     return res.status(500).json({ error: 'Internal server error' })

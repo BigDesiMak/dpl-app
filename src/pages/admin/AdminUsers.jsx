@@ -12,6 +12,8 @@ export default function AdminUsers() {
   const [deleting, setDeleting] = useState(null)   // id being deleted
   const [confirmId, setConfirmId] = useState(null) // id awaiting confirm
   const [resetting, setResetting] = useState(null) // id being reset
+  const [newPasswordInput, setNewPasswordInput] = useState('') // new password input
+  const [showResetModal, setShowResetModal] = useState(null) // user id for reset modal
 
   useEffect(() => { loadUsers() }, [])
 
@@ -61,7 +63,7 @@ export default function AdminUsers() {
     }
   }
 
-  async function resetPassword(profile) {
+  async function resetPassword(profile, newPassword) {
     if (profile.id === adminUser.id) {
       toast.error("You can't reset your own password")
       return
@@ -76,7 +78,7 @@ export default function AdminUsers() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId: profile.id })
+          body: JSON.stringify({ userId: profile.id, newPassword })
         })
       } catch {
         // Fallback to Netlify function
@@ -85,7 +87,7 @@ export default function AdminUsers() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId: profile.id })
+          body: JSON.stringify({ userId: profile.id, newPassword })
         })
       }
 
@@ -95,7 +97,9 @@ export default function AdminUsers() {
         throw new Error(data.error || 'Failed to reset password')
       }
 
-      toast.success(`Password reset for ${profile.username} — new password: 123456`)
+      toast.success(`Password reset for ${profile.username} — new password set successfully`)
+      setShowResetModal(null)
+      setNewPasswordInput('')
     } catch (err) {
       toast.error('Password reset failed: ' + err.message)
     } finally {
@@ -132,7 +136,7 @@ export default function AdminUsers() {
           background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
           color: 'var(--gray-400)'
         }}>
-          💡 Deleting a user removes their profile <strong style={{ color: 'var(--cream)' }}>and revokes their login access immediately</strong> — they will be signed out on their next action. Password reset sets the user's password to <strong style={{ color: 'var(--gold-400)' }}>123456</strong> using secure server-side processing.
+          💡 Deleting a user removes their profile <strong style={{ color: 'var(--cream)' }}>and revokes their login access immediately</strong> — they will be signed out on their next action. Password reset allows you to set a <strong style={{ color: 'var(--gold-400)' }}>custom password</strong> for any user using secure server-side processing.
         </div>
 
         <div className="filter-bar">
@@ -198,9 +202,9 @@ export default function AdminUsers() {
                             {!isMe && (
                               <button
                                 className="btn btn-secondary btn-sm"
-                                onClick={() => resetPassword(u)}
+                                onClick={() => setShowResetModal(u.id)}
                                 disabled={resetting === u.id}
-                                title="Reset password to 123456"
+                                title="Reset user password"
                               >
                                 {resetting === u.id ? '⏳ Resetting...' : '🔑 Reset Password'}
                               </button>
@@ -252,6 +256,79 @@ export default function AdminUsers() {
                 <div className="empty-state-title">No users found</div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Password Reset Modal */}
+        {showResetModal && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              background: 'var(--green-900)', borderRadius: 12, padding: 24, maxWidth: 400, width: '90%',
+              border: '1px solid var(--green-700)'
+            }}>
+              <h3 style={{ margin: '0 0 16px 0', color: 'var(--gold-400)' }}>
+                🔑 Reset Password
+              </h3>
+              <p style={{ margin: '0 0 20px 0', fontSize: '0.9rem', color: 'var(--gray-400)' }}>
+                Set a new password for <strong style={{ color: 'var(--cream)' }}>
+                  {users.find(u => u.id === showResetModal)?.username}
+                </strong>
+              </p>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{
+                  display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--cream)',
+                  marginBottom: 6
+                }}>
+                  New Password *
+                </label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="Enter new password"
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  style={{ width: '100%' }}
+                  autoFocus
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setShowResetModal(null)
+                    setNewPasswordInput('')
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    if (!newPasswordInput.trim()) {
+                      toast.error('Please enter a password')
+                      return
+                    }
+                    if (newPasswordInput.length < 6) {
+                      toast.error('Password must be at least 6 characters')
+                      return
+                    }
+                    const user = users.find(u => u.id === showResetModal)
+                    if (user) {
+                      resetPassword(user, newPasswordInput.trim())
+                    }
+                  }}
+                  disabled={resetting === showResetModal}
+                >
+                  {resetting === showResetModal ? '⏳ Resetting...' : '✓ Reset Password'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
