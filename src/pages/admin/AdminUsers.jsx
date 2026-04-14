@@ -68,12 +68,32 @@ export default function AdminUsers() {
     }
     setResetting(profile.id)
     try {
-      // Use Supabase admin API to reset password to default
-      const { error } = await supabase.auth.admin.updateUserById(profile.id, {
-        password: '123456'
-      })
+      // Try Vercel API route first, then fallback to Netlify function
+      let response
+      try {
+        response = await fetch('/api/reset-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: profile.id })
+        })
+      } catch {
+        // Fallback to Netlify function
+        response = await fetch('/.netlify/functions/reset-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: profile.id })
+        })
+      }
 
-      if (error) throw error
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reset password')
+      }
 
       toast.success(`Password reset for ${profile.username} — new password: 123456`)
     } catch (err) {
@@ -112,7 +132,7 @@ export default function AdminUsers() {
           background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
           color: 'var(--gray-400)'
         }}>
-          💡 Deleting a user removes their profile <strong style={{ color: 'var(--cream)' }}>and revokes their login access immediately</strong> — they will be signed out on their next action. Password reset sets the user's password to <strong style={{ color: 'var(--gold-400)' }}>123456</strong>.
+          💡 Deleting a user removes their profile <strong style={{ color: 'var(--cream)' }}>and revokes their login access immediately</strong> — they will be signed out on their next action. Password reset sets the user's password to <strong style={{ color: 'var(--gold-400)' }}>123456</strong> using secure server-side processing.
         </div>
 
         <div className="filter-bar">
