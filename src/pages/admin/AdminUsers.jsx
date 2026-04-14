@@ -11,6 +11,7 @@ export default function AdminUsers() {
   const [search, setSearch]     = useState('')
   const [deleting, setDeleting] = useState(null)   // id being deleted
   const [confirmId, setConfirmId] = useState(null) // id awaiting confirm
+  const [resetting, setResetting] = useState(null) // id being reset
 
   useEffect(() => { loadUsers() }, [])
 
@@ -60,6 +61,28 @@ export default function AdminUsers() {
     }
   }
 
+  async function resetPassword(profile) {
+    if (profile.id === adminUser.id) {
+      toast.error("You can't reset your own password")
+      return
+    }
+    setResetting(profile.id)
+    try {
+      // Use Supabase admin API to reset password to default
+      const { error } = await supabase.auth.admin.updateUserById(profile.id, {
+        password: '123456'
+      })
+
+      if (error) throw error
+
+      toast.success(`Password reset for ${profile.username} — new password: 123456`)
+    } catch (err) {
+      toast.error('Password reset failed: ' + err.message)
+    } finally {
+      setResetting(null)
+    }
+  }
+
   const filtered = users.filter(u => {
     if (!search) return true
     const q = search.toLowerCase()
@@ -89,7 +112,7 @@ export default function AdminUsers() {
           background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)',
           color: 'var(--gray-400)'
         }}>
-          💡 Deleting a user removes their profile <strong style={{ color: 'var(--cream)' }}>and revokes their login access immediately</strong> — they will be signed out on their next action.
+          💡 Deleting a user removes their profile <strong style={{ color: 'var(--cream)' }}>and revokes their login access immediately</strong> — they will be signed out on their next action. Password reset sets the user's password to <strong style={{ color: 'var(--gold-400)' }}>123456</strong>.
         </div>
 
         <div className="filter-bar">
@@ -142,7 +165,7 @@ export default function AdminUsers() {
                       </td>
                       <td>
                         {!isConfirm ? (
-                          <div style={{ display: 'flex', gap: 8 }}>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                             {!isMe && (
                               <button
                                 className={`btn btn-sm ${u.is_admin ? 'btn-secondary' : 'btn-secondary'}`}
@@ -150,6 +173,16 @@ export default function AdminUsers() {
                                 title={u.is_admin ? 'Remove admin' : 'Make admin'}
                               >
                                 {u.is_admin ? '↓ Remove Admin' : '↑ Make Admin'}
+                              </button>
+                            )}
+                            {!isMe && (
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => resetPassword(u)}
+                                disabled={resetting === u.id}
+                                title="Reset password to 123456"
+                              >
+                                {resetting === u.id ? '⏳ Resetting...' : '🔑 Reset Password'}
                               </button>
                             )}
                             {!isMe && (

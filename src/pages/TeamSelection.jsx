@@ -35,8 +35,20 @@ export default function TeamSelection() {
   const [nextPhase, setNextPhase]         = useState(null)
   const [workingPhase, setWorkingPhase]   = useState(null)
   const [selectedPhaseId, setSelectedPhaseId] = useState(null)
+  const [hasDraft, setHasDraft]           = useState(false)
 
   useEffect(() => { if (user) loadData() }, [user])
+
+  // Save draft to localStorage whenever selections change
+  useEffect(() => {
+    if (!workingPhase) return
+    const draft = {
+      phaseId: workingPhase.id,
+      selectedIds, captainId, vcId, teamName,
+      filterGender, filterSkill, filterTeam, search, sortBy, activeTab
+    }
+    localStorage.setItem(`dpl_team_draft_${workingPhase.id}`, JSON.stringify(draft))
+  }, [selectedIds, captainId, vcId, teamName, filterGender, filterSkill, filterTeam, search, sortBy, activeTab, workingPhase?.id])
 
   async function loadData() {
     setLoading(true)
@@ -79,9 +91,36 @@ export default function TeamSelection() {
       setSelectedIds(ft.players?.map(p => p.player_id) || [])
       setCaptainId(ft.captain_id)
       setVcId(ft.vice_captain_id)
+      // Clear draft when loading saved team
+      localStorage.removeItem(`dpl_team_draft_${workingPhase.id}`)
     } else {
       setExistingTeam(null)
-      setTeamName(''); setSelectedIds([]); setCaptainId(null); setVcId(null)
+      // Try to restore draft first
+      const draft = localStorage.getItem(`dpl_team_draft_${workingPhase.id}`)
+      if (draft) {
+        try {
+          const d = JSON.parse(draft)
+          setTeamName(d.teamName || '')
+          setSelectedIds(d.selectedIds || [])
+          setCaptainId(d.captainId || null)
+          setVcId(d.vcId || null)
+          setFilterGender(d.filterGender || 'All')
+          setFilterSkill(d.filterSkill || 'All')
+          setFilterTeam(d.filterTeam || 'All')
+          setSearch(d.search || '')
+          setSortBy(d.sortBy || 'name_asc')
+          setActiveTab(d.activeTab || 'select')
+          setHasDraft(true)
+        } catch (e) {
+          // If draft is corrupted, reset
+          setTeamName(''); setSelectedIds([]); setCaptainId(null); setVcId(null); setActiveTab('select')
+          setHasDraft(false)
+        }
+      } else {
+        // No existing team or draft — reset form
+        setTeamName(''); setSelectedIds([]); setCaptainId(null); setVcId(null)
+        setHasDraft(false)
+      }
     }
     setLoading(false)
   }
@@ -200,6 +239,9 @@ export default function TeamSelection() {
         fantasy_team_id: teamId, player_id: pid, is_playing: true, position: idx + 1
       }))
       await supabase.from('fantasy_team_players').insert(rows)
+      // Clear draft after successful save
+      localStorage.removeItem(`dpl_team_draft_${workingPhase?.id || phase?.id}`)
+      setHasDraft(false)
       toast.success(existingTeam ? 'Team updated! 🏏' : 'Team created! 🏏')
       navigate('/dashboard')
     } catch (err) {
@@ -268,6 +310,26 @@ export default function TeamSelection() {
             background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', color: 'var(--gray-400)'
           }}>
             📅 Each phase has its own independent team — create freely for <strong style={{ color: 'var(--gold-400)' }}>{workingPhase?.name || phase?.name}</strong>.
+          </div>
+        )}
+
+        {/* Draft restoration banner */}
+        {hasDraft && !existingTeam && (
+          <div style={{
+            padding: '10px 16px', marginBottom: 16, borderRadius: 8, fontSize: '0.85rem',
+            background: 'rgba(34, 197, 94, 0.06)', border: '1px solid rgba(34, 197, 94, 0.3)', 
+            color: 'var(--green-300)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          }}>
+            <span>✅ Your draft team was restored from your last session</span>
+            <button 
+              onClick={() => {
+                localStorage.removeItem(`dpl_team_draft_${workingPhase.id}`)
+                setHasDraft(false)
+                setTeamName(''); setSelectedIds([]); setCaptainId(null); setVcId(null)
+              }}
+              style={{ background: 'none', border: 'none', color: 'var(--gray-400)', cursor: 'pointer', fontSize: '0.75rem' }}>
+              Clear draft
+            </button>
           </div>
         )}
 
