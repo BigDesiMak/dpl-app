@@ -11,6 +11,7 @@ export default function UserDashboard() {
   const [activeTeam, setActiveTeam]     = useState(null)
   const [allTeams, setAllTeams]         = useState([])   // CHANGE 3: all phase teams
   const [phasePointsMap, setPhasePointsMap] = useState({}) // phaseId -> points array
+  const [playerPointsMap, setPlayerPointsMap] = useState({}) // activeTeamId -> [{player_id, name, total_points}, ...]
   const [recentMatches, setRecentMatches]   = useState([])
   const [rank, setRank]                 = useState(null)
   const [loading, setLoading]           = useState(true)
@@ -67,6 +68,38 @@ export default function UserDashboard() {
         pMap[p.fantasy_team_id].push(p)
       })
       setPhasePointsMap(pMap)
+    }
+
+    // Load per-player points for active team
+    if (actTeam) {
+      const { data: teamPlayers } = await supabase.from('fantasy_team_players')
+        .select('player_id, player:player_id(id,name)')
+        .eq('fantasy_team_id', actTeam.id)
+      
+      if (teamPlayers?.length) {
+        const playerIds = teamPlayers.map(tp => tp.player_id)
+        const { data: stats } = await supabase.from('player_match_stats')
+          .select('player_id, total_points')
+          .in('player_id', playerIds)
+        
+        // Aggregate points by player
+        const playerMap = {}
+        stats?.forEach(stat => {
+          if (!playerMap[stat.player_id]) {
+            playerMap[stat.player_id] = { total_points: 0 }
+          }
+          playerMap[stat.player_id].total_points += stat.total_points || 0
+        })
+        
+        // Merge with player names and sort by points
+        const playersList = teamPlayers.map(tp => ({
+          player_id: tp.player_id,
+          name: tp.player?.name || 'Unknown',
+          total_points: playerMap[tp.player_id]?.total_points || 0
+        })).sort((a, b) => b.total_points - a.total_points)
+        
+        setPlayerPointsMap({ [actTeam.id]: playersList })
+      }
     }
 
     setLoading(false)
@@ -181,6 +214,34 @@ export default function UserDashboard() {
             )}
           </div>
         </div>
+
+        {/* Player Points Breakdown */}
+        {activeTeam && playerPointsMap[activeTeam.id] && playerPointsMap[activeTeam.id].length > 0 && (
+          <div className="card mt-3">
+            <div className="card-header">
+              <h3 className="card-title">🎯 Player Points</h3>
+              <span style={{ fontSize: '0.8rem', color: 'var(--gray-400)' }}>
+                {activePhase?.name || 'Current Phase'}
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
+              {playerPointsMap[activeTeam.id].map(player => (
+                <div key={player.player_id} style={{
+                  background: 'var(--green-800)', border: '1px solid var(--green-700)',
+                  borderRadius: 8, padding: 12, textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 6, color: 'var(--cream)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {player.name}
+                  </div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: player.total_points > 0 ? 'var(--gold-400)' : 'var(--gray-500)' }}>
+                    {Math.round(player.total_points)}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--gray-400)', marginTop: 4 }}>points</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* CHANGE 3: All phase teams */}
         <div className="card mt-3">

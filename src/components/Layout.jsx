@@ -1,16 +1,25 @@
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   async function handleSignOut() {
     await signOut()
     toast.success('Signed out successfully')
     navigate('/')
+  }
+
+  function toggleMobileNav() {
+    setMobileOpen(open => !open)
+  }
+
+  function closeMobileNav() {
+    setMobileOpen(false)
   }
 
   const isAdmin = profile?.is_admin
@@ -22,7 +31,10 @@ export default function Layout({ children }) {
           🏏 DPL
           <span className="navbar-brand-sub">Fantasy Cricket 2026</span>
         </NavLink>
-        <div className="navbar-links">
+        <button className="nav-mobile-toggle" onClick={toggleMobileNav} aria-expanded={mobileOpen} aria-label="Toggle navigation">
+          {mobileOpen ? '✕' : '☰'}
+        </button>
+        <div className={`navbar-links${mobileOpen ? ' mobile-open' : ''}`} onClick={closeMobileNav}>
           {isAdmin ? (
             <>
               <NavLink to="/admin" className={({isActive}) => `nav-link${isActive?' active':''}`} end>Overview</NavLink>
