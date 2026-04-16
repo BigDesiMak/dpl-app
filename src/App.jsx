@@ -9,7 +9,8 @@ import UserDashboard from './pages/UserDashboard'
 import TeamSelection from './pages/TeamSelection'
 import Leaderboard from './pages/Leaderboard'
 import PlayerStats from './pages/PlayerStats'
-import AllTeams    from './pages/AllTeams'
+import AllTeams from './pages/AllTeams'
+import MVP from './pages/MVP'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminPlayers from './pages/admin/AdminPlayers'
 import AdminMatches from './pages/admin/AdminMatches'
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Route path="/team" element={<ProtectedRoute><TeamSelection /></ProtectedRoute>} />
       <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
       <Route path="/players" element={<ProtectedRoute><PlayerStats /></ProtectedRoute>} />
+      <Route path="/mvp" element={<ProtectedRoute><MVP /></ProtectedRoute>} />
       <Route path="/all-teams" element={<ProtectedRoute><AllTeams /></ProtectedRoute>} />
 
       {/* Protected admin routes */}
